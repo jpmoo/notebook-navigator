@@ -139,6 +139,7 @@ export const STRINGS_VI = {
         newNote: 'Ghi chú mới', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Quay lại điều hướng', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Đổi thứ tự sắp xếp',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Đổi sắp xếp và nhóm',
         defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
         manualSort: 'Sắp xếp thủ công',
@@ -336,6 +337,7 @@ export const STRINGS_VI = {
         folder: {
             newNote: 'Ghi chú mới',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Ghi chú mới từ mẫu',
             newFolder: 'Thư mục mới',
             newCanvas: 'Canvas mới',
@@ -410,6 +412,11 @@ export const STRINGS_VI = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Áp dụng',
             applySortAndGroupTitle: (target: string) => `Áp dụng sắp xếp và nhóm cho ${target}?`,

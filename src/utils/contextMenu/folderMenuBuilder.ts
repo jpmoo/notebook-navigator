@@ -36,6 +36,7 @@ import { getTemplaterCreateNewNoteFromTemplate } from '../templaterIntegration';
 import { resolveFolderDisplayName } from '../folderDisplayName';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
 import { expandNavigationTreeItems, getFolderAncestorPaths } from '../navigationExpansion';
+import { ReorderSubfoldersModal } from '../../modals/ReorderSubfoldersModal';
 
 /**
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
@@ -288,16 +289,41 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Child folder sort order
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        const subfolderCount = folder.children.reduce((count, child) => (child instanceof TFolder ? count + 1 : count), 0);
+        const canReorderSubfolders = subfolderCount >= 2;
+        const manualOrder = metadataService.getFolderChildManualOrder(folder.path);
+        const hasManualOrder = manualOrder !== undefined;
+
+        const openReorderSubfoldersModal = () => {
+            new ReorderSubfoldersModal(app, folder, manualOrder, orderedPaths => {
+                runAsyncAction(async () => {
+                    await metadataService.setFolderChildManualOrder(folder.path, orderedPaths);
+                    app.workspace.requestSaveLayout();
+                });
+            }).open();
+        };
+
         menu.addSeparator();
+
+        // Dedicated entry to open the drag-reorder dialog (only meaningful with 2+ subfolders).
+        if (canReorderSubfolders) {
+            menu.addItem((item: MenuItem) => {
+                item.setTitle(strings.contextMenu.folder.reorderSubfolders)
+                    .setIcon('lucide-arrow-up-down')
+                    .onClick(() => openReorderSubfoldersModal());
+            });
+        }
 
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getFolderChildSortOrderOverride(folder.path);
             const effectiveOrder = currentOverride ?? settings.folderSortOrder;
-            const sortIcon = currentOverride
-                ? effectiveOrder === 'alpha-desc'
-                    ? 'lucide-sort-desc'
-                    : 'lucide-sort-asc'
-                : 'lucide-sliders-horizontal';
+            const sortIcon = hasManualOrder
+                ? 'lucide-arrow-up-down'
+                : currentOverride
+                  ? effectiveOrder === 'alpha-desc'
+                      ? 'lucide-sort-desc'
+                      : 'lucide-sort-asc'
+                  : 'lucide-sliders-horizontal';
 
             const sortOrderSubmenu = tryCreateSubmenu(item);
             if (!sortOrderSubmenu) {
@@ -313,8 +339,9 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon);
 
             sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
+                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride && !hasManualOrder);
                 setAsyncOnClick(subItem, async () => {
+                    await metadataService.removeFolderChildManualOrder(folder.path);
                     await metadataService.removeFolderChildSortOrderOverride(folder.path);
                     app.workspace.requestSaveLayout();
                 });
@@ -323,20 +350,36 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             sortOrderSubmenu.addSeparator();
 
             sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
+                subItem
+                    .setTitle(strings.settings.items.folderSortOrder.options.alphaAsc)
+                    .setChecked(!hasManualOrder && currentOverride === 'alpha-asc');
                 setAsyncOnClick(subItem, async () => {
+                    await metadataService.removeFolderChildManualOrder(folder.path);
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-asc');
                     app.workspace.requestSaveLayout();
                 });
             });
 
             sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
+                subItem
+                    .setTitle(strings.settings.items.folderSortOrder.options.alphaDesc)
+                    .setChecked(!hasManualOrder && currentOverride === 'alpha-desc');
                 setAsyncOnClick(subItem, async () => {
+                    await metadataService.removeFolderChildManualOrder(folder.path);
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-desc');
                     app.workspace.requestSaveLayout();
                 });
             });
+
+            if (canReorderSubfolders) {
+                sortOrderSubmenu.addSeparator();
+                sortOrderSubmenu.addItem(subItem => {
+                    subItem
+                        .setTitle(strings.paneHeader.manualChildSortOrder)
+                        .setChecked(hasManualOrder)
+                        .onClick(() => openReorderSubfoldersModal());
+                });
+            }
         });
     }
 

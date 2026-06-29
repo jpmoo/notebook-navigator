@@ -139,6 +139,7 @@ export const STRINGS_AR = {
         newNote: 'ملاحظة جديدة', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'العودة للتنقل', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'تغيير ترتيب الفرز',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
         defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
         manualSort: 'فرز يدوي',
@@ -336,6 +337,7 @@ export const STRINGS_AR = {
         folder: {
             newNote: 'ملاحظة جديدة',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'ملاحظة جديدة من قالب',
             newFolder: 'مجلد جديد',
             newCanvas: 'لوحة جديدة',
@@ -410,6 +412,11 @@ export const STRINGS_AR = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'تطبيق',
             applySortAndGroupTitle: (target: string) => `تطبيق الفرز والتجميع على ${target}؟`,

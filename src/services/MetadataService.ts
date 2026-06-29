@@ -223,6 +223,18 @@ export class MetadataService {
         return this.folderService.getFolderChildSortOrderOverride(folderPath);
     }
 
+    getFolderChildManualOrder(parentPath: string): string[] | undefined {
+        return this.folderService.getFolderChildManualOrder(parentPath);
+    }
+
+    async setFolderChildManualOrder(parentPath: string, orderedChildPaths: string[]): Promise<void> {
+        return this.folderService.setFolderChildManualOrder(parentPath, orderedChildPaths);
+    }
+
+    async removeFolderChildManualOrder(parentPath: string): Promise<void> {
+        return this.folderService.removeFolderChildManualOrder(parentPath);
+    }
+
     async handleFolderRename(oldPath: string, newPath: string): Promise<void> {
         await this.folderService.handleFolderRename(oldPath, newPath, settings =>
             this.navigationSeparatorService.applyFolderRename(settings, oldPath, newPath)

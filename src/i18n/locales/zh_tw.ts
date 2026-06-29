@@ -138,6 +138,7 @@ export const STRINGS_ZH_TW = {
         newNote: '新筆記',
         mobileBackToNavigation: '返回導覽',
         changeChildSortOrder: '變更排序方式',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: '變更排序與分組',
         defaultSort: '預設',
         manualSort: '手動排序',
@@ -336,6 +337,7 @@ export const STRINGS_ZH_TW = {
         folder: {
             newNote: '新筆記',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: '從範本新建筆記',
             newFolder: '新建資料夾',
             newCanvas: '新建畫布',
@@ -410,6 +412,11 @@ export const STRINGS_ZH_TW = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: '套用',
             applySortAndGroupTitle: (target: string) => `將排序與分組套用到${target}？`,

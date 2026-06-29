@@ -139,6 +139,7 @@ export const STRINGS_PL = {
         newNote: 'Nowa notatka', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Wróć do nawigacji', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Zmień kolejność sortowania',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
         defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
         manualSort: 'Sortowanie ręczne',
@@ -337,6 +338,7 @@ export const STRINGS_PL = {
         folder: {
             newNote: 'Nowa notatka',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Nowa notatka na podstawie szablonu',
             newFolder: 'Nowy folder',
             newCanvas: 'Nowa tablica',
@@ -413,6 +415,11 @@ export const STRINGS_PL = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Zastosuj',
             applySortAndGroupTitle: (target: string) => `Zastosuj sortowanie i grupowanie dla ${target}?`,

@@ -139,6 +139,7 @@ export const STRINGS_TR = {
         newNote: 'Yeni not', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Gezinmeye dön', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sıralama düzenini değiştir',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
         defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
         manualSort: 'Manuel sıralama',
@@ -337,6 +338,7 @@ export const STRINGS_TR = {
         folder: {
             newNote: 'Yeni not',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Şablondan yeni not',
             newFolder: 'Yeni klasör',
             newCanvas: 'Yeni tuval',
@@ -411,6 +413,11 @@ export const STRINGS_TR = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Uygula',
             applySortAndGroupTitle: (target: string) => `Sıralama ve gruplandırma ${target} için uygulansın mı?`,

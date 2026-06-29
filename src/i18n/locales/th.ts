@@ -139,6 +139,7 @@ export const STRINGS_TH = {
         newNote: 'โน้ตใหม่',
         mobileBackToNavigation: 'กลับไปการนำทาง',
         changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
         defaultSort: 'ค่าเริ่มต้น',
         manualSort: 'จัดเรียงด้วยตนเอง',
@@ -336,6 +337,7 @@ export const STRINGS_TH = {
         folder: {
             newNote: 'โน้ตใหม่',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
             newFolder: 'โฟลเดอร์ใหม่',
             newCanvas: 'Canvas ใหม่',
@@ -410,6 +412,11 @@ export const STRINGS_TH = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'ใช้',
             applySortAndGroupTitle: (target: string) => `ใช้การเรียงและการจัดกลุ่มกับ${target}?`,

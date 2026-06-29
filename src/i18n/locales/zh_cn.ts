@@ -138,6 +138,7 @@ export const STRINGS_ZH_CN = {
         newNote: '新笔记', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: '返回导航', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '更改排序方式',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: '更改排序和分组',
         defaultSort: '默认', // Label for default sorting mode (English: Default)
         manualSort: '手动排序',
@@ -336,6 +337,7 @@ export const STRINGS_ZH_CN = {
         folder: {
             newNote: '新笔记',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: '从模板新建笔记',
             newFolder: '新建文件夹',
             newCanvas: '新建画布',
@@ -410,6 +412,11 @@ export const STRINGS_ZH_CN = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: '应用',
             applySortAndGroupTitle: (target: string) => `将排序和分组应用到${target}？`,

@@ -139,6 +139,7 @@ export const STRINGS_FR = {
         newNote: 'Nouvelle note', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Retour à la navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: "Changer l'ordre de tri",
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Changer le tri et le regroupement',
         defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
         manualSort: 'Tri manuel',
@@ -338,6 +339,7 @@ export const STRINGS_FR = {
         folder: {
             newNote: 'Nouvelle note',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Nouvelle note depuis un modèle',
             newFolder: 'Nouveau dossier',
             newCanvas: 'Nouveau canevas',
@@ -412,6 +414,11 @@ export const STRINGS_FR = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Appliquer',
             applySortAndGroupTitle: (target: string) => `Appliquer le tri et le regroupement aux ${target}\u202f?`,

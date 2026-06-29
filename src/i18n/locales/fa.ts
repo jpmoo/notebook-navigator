@@ -139,6 +139,7 @@ export const STRINGS_FA = {
         newNote: 'یادداشت جدید',
         mobileBackToNavigation: 'بازگشت به ناوبری',
         changeChildSortOrder: 'تغییر ترتیب',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
         defaultSort: 'پیش‌فرض',
         manualSort: 'مرتب‌سازی دستی',
@@ -336,6 +337,7 @@ export const STRINGS_FA = {
         folder: {
             newNote: 'یادداشت جدید',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'یادداشت جدید از قالب',
             newFolder: 'پوشه جدید',
             newCanvas: 'بوم جدید',
@@ -410,6 +412,11 @@ export const STRINGS_FA = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'اعمال',
             applySortAndGroupTitle: (target: string) => `مرتب‌سازی و گروه‌بندی به ${target} اعمال شود؟`,

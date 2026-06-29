@@ -139,6 +139,7 @@ export const STRINGS_RU = {
         newNote: 'Новая заметка', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Назад к навигации', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Изменить сортировку',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Изменить сортировку и группировку',
         defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
         manualSort: 'Ручная сортировка',
@@ -337,6 +338,7 @@ export const STRINGS_RU = {
         folder: {
             newNote: 'Новая заметка',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Новая заметка из шаблона',
             newFolder: 'Новая папка',
             newCanvas: 'Новый холст',
@@ -411,6 +413,11 @@ export const STRINGS_RU = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Применить',
             applySortAndGroupTitle: (target: string) => `Применить сортировку и группировку для ${target}?`,

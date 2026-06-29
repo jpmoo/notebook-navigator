@@ -139,6 +139,7 @@ export const STRINGS_ID = {
         newNote: 'Catatan baru',
         mobileBackToNavigation: 'Kembali ke navigasi',
         changeChildSortOrder: 'Ubah urutan',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Ubah urutan dan grup',
         defaultSort: 'Default',
         manualSort: 'Urutan manual',
@@ -337,6 +338,7 @@ export const STRINGS_ID = {
         folder: {
             newNote: 'Catatan baru',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Catatan baru dari template',
             newFolder: 'Folder baru',
             newCanvas: 'Canvas baru',
@@ -411,6 +413,11 @@ export const STRINGS_ID = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Terapkan',
             applySortAndGroupTitle: (target: string) => `Terapkan urutan dan grup ke ${target}?`,

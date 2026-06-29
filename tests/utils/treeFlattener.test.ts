@@ -18,7 +18,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { TFolder } from 'obsidian';
-import { buildVisibleFolderTraversalState, flattenFolderTree } from '../../src/utils/treeFlattener';
+import { buildChildManualOrderMaps, buildVisibleFolderTraversalState, flattenFolderTree } from '../../src/utils/treeFlattener';
 
 function getFolderName(path: string): string {
     if (path === '/') {
@@ -172,5 +172,40 @@ describe('treeFlattener flattenFolderTree', () => {
 
         expect(traversalState.siblingPathsByParent.get('/')).toEqual(['Projects']);
         expect(traversalState.siblingPathsByParent.has('Projects')).toBe(false);
+    });
+
+    it('orders non-root subfolders by a per-parent manual order', () => {
+        const a = createFolder('Projects/A');
+        const b = createFolder('Projects/B');
+        const c = createFolder('Projects/C');
+        const projects = createFolder('Projects', [a, b, c]);
+        const root = createFolder('/', [projects]);
+        const expandedFolders = new Set<string>(['/', 'Projects']);
+
+        const items = flattenFolderTree([root], expandedFolders, [], 0, new Set(), {
+            defaultSortOrder: 'alpha-asc',
+            childManualOrderMaps: buildChildManualOrderMaps({ Projects: ['Projects/C', 'Projects/A', 'Projects/B'] })
+        });
+
+        const childPaths = items.filter(item => item.level === 2).map(item => item.data.path);
+        expect(childPaths).toEqual(['Projects/C', 'Projects/A', 'Projects/B']);
+    });
+
+    it('appends subfolders missing from the manual order alphabetically at the end', () => {
+        const a = createFolder('Projects/A');
+        const b = createFolder('Projects/B');
+        const newer = createFolder('Projects/Newer');
+        const projects = createFolder('Projects', [a, b, newer]);
+        const root = createFolder('/', [projects]);
+        const expandedFolders = new Set<string>(['/', 'Projects']);
+
+        // Only B has a manual position; A and Newer fall back to alphabetical after it.
+        const items = flattenFolderTree([root], expandedFolders, [], 0, new Set(), {
+            defaultSortOrder: 'alpha-asc',
+            childManualOrderMaps: buildChildManualOrderMaps({ Projects: ['Projects/B'] })
+        });
+
+        const childPaths = items.filter(item => item.level === 2).map(item => item.data.path);
+        expect(childPaths).toEqual(['Projects/B', 'Projects/A', 'Projects/Newer']);
     });
 });

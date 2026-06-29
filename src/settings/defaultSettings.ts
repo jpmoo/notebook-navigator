@@ -432,6 +432,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     folderBackgroundColors: sanitizeRecord<string>(undefined),
     folderSortOverrides: sanitizeRecord<NotebookNavigatorSettings['folderSortOverrides'][string]>(undefined),
     folderTreeSortOverrides: sanitizeRecord<NotebookNavigatorSettings['folderTreeSortOverrides'][string]>(undefined),
+    folderChildManualOrders: sanitizeRecord<NotebookNavigatorSettings['folderChildManualOrders'][string]>(undefined),
     folderAppearances: sanitizeRecord<FolderAppearance>(undefined),
     tagIcons: sanitizeRecord<string>(undefined),
     tagColors: sanitizeRecord<string>(undefined),

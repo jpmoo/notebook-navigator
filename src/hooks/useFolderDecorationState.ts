@@ -23,7 +23,7 @@ import { useActiveProfile, useSettingsState } from '../context/SettingsContext';
 import type { NotebookNavigatorSettings } from '../settings/types';
 import { useFolderNavigationSourceState, type FolderNavigationSourceState } from './useFolderNavigationSourceState';
 import { buildFolderRainbowColorsFromSiblingPaths } from '../utils/navigationRainbow';
-import { buildVisibleFolderTraversalState } from '../utils/treeFlattener';
+import { buildChildManualOrderMaps, buildVisibleFolderTraversalState } from '../utils/treeFlattener';
 import { useNavigationRainbowState, type NavigationRainbowState } from './useNavigationRainbowState';
 import { type FolderDecorationModel } from '../utils/folderDecoration';
 import { useThemeMode } from './useThemeMode';
@@ -59,6 +59,7 @@ function useFolderDecorationModel({ settings, navRainbowState, source }: UseFold
             rootOrderMap: source.rootFolderOrderMap,
             defaultSortOrder: settings.folderSortOrder,
             childSortOrderOverrides: settings.folderTreeSortOverrides,
+            childManualOrderMaps: buildChildManualOrderMaps(settings.folderChildManualOrders),
             getFolderSortName: source.getFolderSortName,
             isFolderExcluded: source.folderExclusionByFolderNote,
             includeDescendantSiblingGroups: shouldIncludeDescendantSiblingGroups
@@ -66,6 +67,7 @@ function useFolderDecorationModel({ settings, navRainbowState, source }: UseFold
     }, [
         settings.folderSortOrder,
         settings.folderTreeSortOverrides,
+        settings.folderChildManualOrders,
         source.folderExclusionByFolderNote,
         source.getFolderSortName,
         source.hiddenFolders,

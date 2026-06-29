@@ -138,6 +138,7 @@ export const STRINGS_JA = {
         newNote: '新規ノート', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'ナビゲーションに戻る', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '並び順を変更',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: '並び順とグループを変更',
         defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
         manualSort: '手動並べ替え',
@@ -336,6 +337,7 @@ export const STRINGS_JA = {
         folder: {
             newNote: '新規ノート',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'テンプレートから新規ノート',
             newFolder: '新規フォルダ',
             newCanvas: '新規キャンバス',
@@ -410,6 +412,11 @@ export const STRINGS_JA = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: '適用',
             applySortAndGroupTitle: (target: string) => `${target}に並び替えとグループ化を適用しますか？`,

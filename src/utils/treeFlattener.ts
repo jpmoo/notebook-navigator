@@ -33,6 +33,8 @@ interface FlattenFolderTreeOptions {
     defaultSortOrder?: AlphaSortOrder;
     /** Per-folder child sort order overrides */
     childSortOrderOverrides?: Record<string, AlphaSortOrder>;
+    /** Per-parent manual subfolder order: parent path -> (child path -> index). Parents present here sort manually. */
+    childManualOrderMaps?: Map<string, Map<string, number>>;
     /** Resolves the string used when alphabetically sorting folders */
     getFolderSortName?: (folder: TFolder) => string;
     /** Additional exclusion check applied per folder */
@@ -70,6 +72,28 @@ interface FlattenTagTreeOptions {
     comparator?: (a: TagTreeNode, b: TagTreeNode) => number;
     /** Per-tag child sort order overrides */
     childSortOrderOverrides?: Record<string, AlphaSortOrder>;
+}
+
+/**
+ * Builds per-parent manual order lookup maps from the stored child-order record.
+ * Each parent path maps to a (child path -> index) map for O(1) order lookups; empty
+ * orders are skipped so those parents fall back to alphabetical sorting.
+ */
+export function buildChildManualOrderMaps(orders: Record<string, string[]> | undefined): Map<string, Map<string, number>> {
+    const result = new Map<string, Map<string, number>>();
+    if (!orders) {
+        return result;
+    }
+    for (const parentPath of Object.keys(orders)) {
+        const childPaths = orders[parentPath];
+        if (!Array.isArray(childPaths) || childPaths.length === 0) {
+            continue;
+        }
+        const orderMap = new Map<string, number>();
+        childPaths.forEach((childPath, index) => orderMap.set(childPath, index));
+        result.set(parentPath, orderMap);
+    }
+    return result;
 }
 
 /**
@@ -167,6 +191,7 @@ function walkOrderedFolderTree({
     rootOrderMap,
     defaultSortOrder,
     childSortOrderOverrides,
+    childManualOrderMaps,
     getFolderSortName,
     isFolderExcluded,
     level = 0,
@@ -211,6 +236,12 @@ function walkOrderedFolderTree({
         const sortedFolders = folders.slice();
         if (parentPath === '/') {
             return sortedFolders.sort((left, right) => compareFolderOrderWithFallback(left, right, rootOrderMap, compareByName));
+        }
+        // A non-root parent with a manual order sorts its children by that custom order,
+        // falling back to alphabetical for children not present in the order map.
+        const manualOrderMap = childManualOrderMaps?.get(parentPath);
+        if (manualOrderMap && manualOrderMap.size > 0) {
+            return sortedFolders.sort((left, right) => compareFolderOrderWithFallback(left, right, manualOrderMap, compareByName));
         }
         return sortedFolders.sort(compareByName);
     };
@@ -303,6 +334,7 @@ export function flattenFolderTree(
         rootOrderMap: options.rootOrderMap,
         defaultSortOrder: options.defaultSortOrder,
         childSortOrderOverrides: options.childSortOrderOverrides,
+        childManualOrderMaps: options.childManualOrderMaps,
         getFolderSortName: options.getFolderSortName,
         isFolderExcluded: options.isFolderExcluded,
         level,
@@ -338,6 +370,7 @@ export function buildVisibleFolderTraversalState({
     rootOrderMap,
     defaultSortOrder,
     childSortOrderOverrides,
+    childManualOrderMaps,
     getFolderSortName,
     isFolderExcluded,
     includeDescendantSiblingGroups = true
@@ -349,6 +382,7 @@ export function buildVisibleFolderTraversalState({
         rootOrderMap,
         defaultSortOrder,
         childSortOrderOverrides,
+        childManualOrderMaps,
         getFolderSortName,
         isFolderExcluded,
         onSiblingGroup: ({ parentPath, entries }) => {

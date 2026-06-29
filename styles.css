@@ -5619,6 +5619,58 @@ body.nn-resizing {
 .is-mobile .modal.nn-search-help-modal .modal-content {
     padding-right: 12px;
 }
+/* ========================================================================
+   Reorder subfolders modal
+   ======================================================================== */
+
+.nn-reorder-subfolders-hint {
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.nn-reorder-subfolders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.nn-reorder-subfolders-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+    cursor: grab;
+    user-select: none;
+}
+
+.nn-reorder-subfolders-row:active {
+    cursor: grabbing;
+}
+
+.nn-reorder-subfolders-grip {
+    color: var(--text-faint);
+    letter-spacing: -2px;
+}
+
+.nn-reorder-subfolders-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nn-reorder-subfolders-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
 /* Source: src/styles/sections/modal-select-vault-profile.css */
 
 /* ========================================================================

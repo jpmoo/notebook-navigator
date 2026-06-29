@@ -413,6 +413,42 @@ export class FolderMetadataService extends BaseMetadataService {
         return this.folderDisplayCache.hasStyleSnapshotChanged(this.getCurrentFolderStyleRecordSource());
     }
 
+    /**
+     * Rewrites child folder paths stored inside manual-order arrays when a folder is
+     * renamed/moved, so a reordered subfolder keeps its position. `updateNestedPaths`
+     * handles the record keys (parent paths); this handles the array values.
+     */
+    private rewriteManualOrderChildPaths(orders: Record<string, string[]> | undefined, oldPath: string, newPath: string): boolean {
+        if (!orders) {
+            return false;
+        }
+        const oldPrefix = `${oldPath}/`;
+        let changed = false;
+        for (const parentPath of Object.keys(orders)) {
+            const childPaths = orders[parentPath];
+            if (!Array.isArray(childPaths)) {
+                continue;
+            }
+            let arrayChanged = false;
+            const rewritten = childPaths.map(childPath => {
+                if (childPath === oldPath) {
+                    arrayChanged = true;
+                    return newPath;
+                }
+                if (childPath.startsWith(oldPrefix)) {
+                    arrayChanged = true;
+                    return `${newPath}/${childPath.slice(oldPrefix.length)}`;
+                }
+                return childPath;
+            });
+            if (arrayChanged) {
+                orders[parentPath] = rewritten;
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     private async syncFolderStyleSettings(
         folderPath: string,
         updates: FolderStyleUpdate,
@@ -719,6 +755,37 @@ export class FolderMetadataService extends BaseMetadataService {
         return this.getEntityChildSortOrderOverride(ItemType.FOLDER, folderPath);
     }
 
+    /** Returns the manual subfolder order for a parent folder, or undefined when not in manual mode. */
+    getFolderChildManualOrder(parentPath: string): string[] | undefined {
+        const record = this.settingsProvider.settings.folderChildManualOrders;
+        return record && Object.prototype.hasOwnProperty.call(record, parentPath) ? record[parentPath] : undefined;
+    }
+
+    /** Sets (and enables) a manual subfolder order for a parent folder. */
+    async setFolderChildManualOrder(parentPath: string, orderedChildPaths: string[]): Promise<void> {
+        if (!this.validateFolder(parentPath)) {
+            return;
+        }
+        await this.saveAndUpdate(settings => {
+            const orders = ensureRecord(settings.folderChildManualOrders);
+            orders[parentPath] = [...orderedChildPaths];
+            settings.folderChildManualOrders = orders;
+        });
+    }
+
+    /** Clears the manual subfolder order for a parent folder (reverts to alphabetical). */
+    async removeFolderChildManualOrder(parentPath: string): Promise<void> {
+        const current = this.settingsProvider.settings.folderChildManualOrders;
+        if (!current || !Object.prototype.hasOwnProperty.call(current, parentPath)) {
+            return;
+        }
+        await this.saveAndUpdate(settings => {
+            const orders = ensureRecord(settings.folderChildManualOrders);
+            delete orders[parentPath];
+            settings.folderChildManualOrders = orders;
+        });
+    }
+
     async handleFolderRename(oldPath: string, newPath: string, extraMutation?: SettingsMutation): Promise<void> {
         this.folderDisplayCache.clear();
         const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'folder', oldPath, newPath);
@@ -730,6 +797,9 @@ export class FolderMetadataService extends BaseMetadataService {
             changed = this.updateNestedPaths(settings.folderIcons, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderSortOverrides, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderTreeSortOverrides, oldPath, newPath) || changed;
+            // Manual subfolder orders: rewrite both the parent-path keys and the child paths stored in each order array.
+            changed = this.updateNestedPaths(settings.folderChildManualOrders, oldPath, newPath) || changed;
+            changed = this.rewriteManualOrderChildPaths(settings.folderChildManualOrders, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderAppearances, oldPath, newPath) || changed;
             changed =
                 updateCollapsedPinnedContextKeys(settings.collapsedPinnedContexts, ItemType.FOLDER, oldPath, newPath, {

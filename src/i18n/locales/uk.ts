@@ -140,6 +140,7 @@ export const STRINGS_UK = {
         newNote: 'Нова нотатка', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Назад до навігації', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Змінити порядок сортування',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Змінити сортування та групування',
         defaultSort: 'За замовчуванням', // Label for default sorting mode (English: Default)
         manualSort: 'Ручне сортування',
@@ -338,6 +339,7 @@ export const STRINGS_UK = {
         folder: {
             newNote: 'Нова нотатка',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Нова нотатка з шаблону',
             newFolder: 'Нова папка',
             newCanvas: 'Нове полотно',
@@ -412,6 +414,11 @@ export const STRINGS_UK = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Застосувати',
             applySortAndGroupTitle: (target: string) => `Застосувати сортування та групування для ${target}?`,

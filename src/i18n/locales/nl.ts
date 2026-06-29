@@ -140,6 +140,7 @@ export const STRINGS_NL = {
         newNote: 'Nieuwe notitie',
         mobileBackToNavigation: 'Terug naar navigatie',
         changeChildSortOrder: 'Sorteervolgorde wijzigen',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Sortering en groepering wijzigen',
         defaultSort: 'Standaard',
         manualSort: 'Handmatig sorteren',
@@ -339,6 +340,7 @@ export const STRINGS_NL = {
         folder: {
             newNote: 'Nieuwe notitie',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: 'Nieuwe notitie uit sjabloon',
             newFolder: 'Nieuwe map',
             newCanvas: 'Nieuw canvas',
@@ -413,6 +415,11 @@ export const STRINGS_NL = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: 'Toepassen',
             applySortAndGroupTitle: (target: string) => `Sortering en groepering toepassen op ${target}?`,

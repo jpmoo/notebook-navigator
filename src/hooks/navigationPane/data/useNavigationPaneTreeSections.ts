@@ -40,6 +40,7 @@ import { getFilesForNavigationSelection } from '../../../utils/selectionUtils';
 import { buildTagTreeFromFilePaths, excludeFromTagTree } from '../../../utils/tagTree';
 import { buildPropertyTreeFromFilePaths, getTotalPropertyNoteCount } from '../../../utils/propertyTree';
 import {
+    buildChildManualOrderMaps,
     flattenFolderTree,
     flattenTagTree,
     comparePropertyOrderWithFallback,
@@ -218,15 +219,21 @@ export function useNavigationPaneTreeSections({
     tagTreeService,
     propertyTreeService
 }: UseNavigationPaneTreeSectionsParams): NavigationPaneTreeSectionsResult {
+    const childManualOrderMaps = useMemo(
+        () => buildChildManualOrderMaps(settings.folderChildManualOrders),
+        [settings.folderChildManualOrders]
+    );
     const folderItems = useMemo(() => {
         return flattenFolderTree(sourceState.rootFolders, expansionState.expandedFolders, sourceState.hiddenFolders, 0, new Set(), {
             rootOrderMap: sourceState.rootFolderOrderMap,
             defaultSortOrder: settings.folderSortOrder,
             childSortOrderOverrides: settings.folderTreeSortOverrides,
+            childManualOrderMaps,
             getFolderSortName: sourceState.getFolderSortName,
             isFolderExcluded: sourceState.folderExclusionByFolderNote
         });
     }, [
+        childManualOrderMaps,
         expansionState.expandedFolders,
         settings.folderSortOrder,
         settings.folderTreeSortOverrides,

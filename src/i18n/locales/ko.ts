@@ -138,6 +138,7 @@ export const STRINGS_KO = {
         newNote: '새 노트', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: '탐색으로 돌아가기', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '정렬 순서 변경',
+        manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: '정렬 및 그룹 변경',
         defaultSort: '기본', // Label for default sorting mode (English: Default)
         manualSort: '수동 정렬',
@@ -335,6 +336,7 @@ export const STRINGS_KO = {
         folder: {
             newNote: '새 노트',
             openAsBoard: 'Open as board',
+            reorderSubfolders: 'Reorder subfolders…',
             newNoteFromTemplate: '템플릿으로 새 노트',
             newFolder: '새 폴더',
             newCanvas: '새 캔버스',
@@ -409,6 +411,11 @@ export const STRINGS_KO = {
 
     // Modal dialogs
     modals: {
+        reorderSubfolders: {
+            title: 'Reorder subfolders',
+            instructions: 'Drag to set the order of subfolders in "{folder}". New subfolders are added alphabetically at the end.',
+            save: 'Save order'
+        },
         bulkApply: {
             applyButton: '적용',
             applySortAndGroupTitle: (target: string) => `${target}에 정렬 및 그룹을 적용하시겠습니까?`,

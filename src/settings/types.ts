@@ -781,6 +781,9 @@ export interface NotebookNavigatorSettings {
     folderBackgroundColors: Record<string, string>;
     folderSortOverrides: Record<string, ListSortOverrideValue>;
     folderTreeSortOverrides: Record<string, AlphaSortOrder>;
+    // Per-parent manual subfolder order: parent folder path -> ordered child folder paths.
+    // A parent is in manual child-sort mode iff it has an entry here.
+    folderChildManualOrders: Record<string, string[]>;
     folderAppearances: Record<string, FolderAppearance>;
     tagIcons: Record<string, string>;
     tagColors: Record<string, string>;
