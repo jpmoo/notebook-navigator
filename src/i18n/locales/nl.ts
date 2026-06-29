@@ -1634,19 +1634,19 @@ export const STRINGS_NL = {
             },
             enterToOpenFiles: {
                 name: 'Druk op Enter om bestanden te openen',
-                desc: 'Open bestanden alleen door op Enter te drukken tijdens toetsenbordnavigatie in de lijst.'
+                desc: 'Open bestanden alleen door op Enter te drukken tijdens toetsenbordnavigatie in de lijst. Op macOS voorkomt dit dat Enter bestanden hernoemt.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Shift+Enter.'
+                desc: 'Kies of Shift+Enter het geselecteerde bestand opent of hernoemt.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Cmd+Enter.'
+                desc: 'Kies of Cmd+Enter het geselecteerde bestand opent of hernoemt.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Ctrl+Enter.'
+                desc: 'Kies of Ctrl+Enter het geselecteerde bestand opent of hernoemt.'
             },
             mouseBackForwardAction: {
                 name: 'Muisknoppen terug/vooruit',

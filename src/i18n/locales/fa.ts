@@ -1631,19 +1631,19 @@ export const STRINGS_FA = {
             },
             enterToOpenFiles: {
                 name: 'فشار Enter برای باز کردن فایل‌ها',
-                desc: 'فایل‌ها فقط با فشار دادن Enter در هنگام پیمایش با صفحه‌کلید در لیست باز شوند.'
+                desc: 'فایل‌ها فقط با فشار دادن Enter در هنگام پیمایش با صفحه‌کلید در لیست باز شوند. در macOS، این کار از تغییر نام فایل‌ها با Enter جلوگیری می‌کند.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Shift+Enter باز کنید.'
+                desc: 'انتخاب کنید که Shift+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Cmd+Enter باز کنید.'
+                desc: 'انتخاب کنید که Cmd+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Ctrl+Enter باز کنید.'
+                desc: 'انتخاب کنید که Ctrl+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             mouseBackForwardAction: {
                 name: 'دکمه‌های عقب/جلو ماوس',

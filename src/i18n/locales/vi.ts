@@ -1632,19 +1632,19 @@ export const STRINGS_VI = {
             },
             enterToOpenFiles: {
                 name: 'Nhấn Enter để mở tệp',
-                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách.'
+                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách. Trên macOS, thao tác này ngăn Enter đổi tên tệp.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Shift+Enter.'
+                desc: 'Chọn Shift+Enter mở hay đổi tên tệp đã chọn.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Cmd+Enter.'
+                desc: 'Chọn Cmd+Enter mở hay đổi tên tệp đã chọn.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Ctrl+Enter.'
+                desc: 'Chọn Ctrl+Enter mở hay đổi tên tệp đã chọn.'
             },
             mouseBackForwardAction: {
                 name: 'Nút quay lại/tiến lên của chuột',

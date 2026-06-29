@@ -1636,19 +1636,19 @@ export const STRINGS_DE = {
             },
             enterToOpenFiles: {
                 name: 'Enter drücken zum Öffnen',
-                desc: 'Dateien nur mit Enter öffnen während der Tastaturnavigation in der Liste.'
+                desc: 'Dateien nur mit Enter öffnen während der Tastaturnavigation in der Liste. Unter macOS verhindert dies, dass Enter Dateien umbenennt.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Shift+Enter.'
+                desc: 'Festlegen, ob Shift+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Cmd+Enter.'
+                desc: 'Festlegen, ob Cmd+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             ctrlEnterOpenContext: {
                 name: 'Strg+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Strg+Enter.'
+                desc: 'Festlegen, ob Strg+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             mouseBackForwardAction: {
                 name: 'Maustasten vor/zurück',

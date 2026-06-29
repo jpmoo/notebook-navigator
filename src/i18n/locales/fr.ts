@@ -1638,19 +1638,19 @@ export const STRINGS_FR = {
             },
             enterToOpenFiles: {
                 name: 'Appuyer sur Entrée pour ouvrir',
-                desc: 'Ouvrir les fichiers uniquement en appuyant sur Entrée lors de la navigation au clavier dans la liste.'
+                desc: 'Ouvrir les fichiers uniquement en appuyant sur Entrée lors de la navigation au clavier dans la liste. Sur macOS, cela empêche Entrée de renommer les fichiers.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Entrée',
-                desc: 'Ouvrir le fichier sélectionné dans un nouvel onglet, une division ou une fenêtre avec Shift+Entrée.'
+                desc: 'Choisir si Shift+Entrée ouvre ou renomme le fichier sélectionné.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Entrée',
-                desc: 'Ouvrir le fichier sélectionné dans un nouvel onglet, une division ou une fenêtre avec Cmd+Entrée.'
+                desc: 'Choisir si Cmd+Entrée ouvre ou renomme le fichier sélectionné.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Entrée',
-                desc: 'Ouvrir le fichier sélectionné dans un nouvel onglet, une division ou une fenêtre avec Ctrl+Entrée.'
+                desc: 'Choisir si Ctrl+Entrée ouvre ou renomme le fichier sélectionné.'
             },
             mouseBackForwardAction: {
                 name: 'Boutons précédent/suivant de la souris',

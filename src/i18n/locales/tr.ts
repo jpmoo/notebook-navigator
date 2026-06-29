@@ -1629,19 +1629,19 @@ export const STRINGS_TR = {
             },
             enterToOpenFiles: {
                 name: "Dosyaları açmak için Enter'a basın",
-                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın."
+                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın. macOS'ta bu, Enter'ın dosyaları yeniden adlandırmasını engeller."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Shift+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Cmd+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Ctrl+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             mouseBackForwardAction: {
                 name: 'Fare geri/ileri düğmeleri',

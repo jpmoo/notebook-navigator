@@ -280,6 +280,17 @@ export function isMultiSelectModifier(value: unknown): value is MultiSelectModif
 /** Workspace context used when opening a file in a new leaf. */
 export type FileOpenContext = 'tab' | 'split' | 'window';
 
+function isFileOpenContext(value: unknown): value is FileOpenContext {
+    return value === 'tab' || value === 'split' || value === 'window';
+}
+
+/** Action used by Enter modifier key settings in the file list. */
+export type EnterKeyAction = FileOpenContext | 'rename';
+
+export function isEnterKeyAction(value: unknown): value is EnterKeyAction {
+    return isFileOpenContext(value) || value === 'rename';
+}
+
 /** Action triggered by mouse back and forward buttons. */
 export type MouseBackForwardAction = 'none' | 'singlePaneSwitch' | 'history';
 
@@ -527,8 +538,8 @@ export interface NotebookNavigatorSettings {
     // General tab - Keyboard navigation
     multiSelectModifier: MultiSelectModifier;
     enterToOpenFiles: boolean;
-    shiftEnterOpenContext: FileOpenContext;
-    cmdCtrlEnterOpenContext: FileOpenContext;
+    shiftEnterOpenContext: EnterKeyAction;
+    cmdCtrlEnterOpenContext: EnterKeyAction;
 
     // General tab - Mouse buttons
     mouseBackForwardAction: MouseBackForwardAction;

@@ -1616,19 +1616,19 @@ export const STRINGS_ZH_TW = {
             },
             enterToOpenFiles: {
                 name: '按 Enter 鍵開啟檔案',
-                desc: '僅在清單鍵盤導覽時按 Enter 鍵開啟檔案。'
+                desc: '僅在清單鍵盤導覽時按 Enter 鍵開啟檔案。在 macOS 上，這會阻止 Enter 鍵重新命名檔案。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: '按 Shift+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Shift+Enter 要開啟還是重新命名所選檔案。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: '按 Cmd+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Cmd+Enter 要開啟還是重新命名所選檔案。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: '按 Ctrl+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Ctrl+Enter 要開啟還是重新命名所選檔案。'
             },
             mouseBackForwardAction: {
                 name: '滑鼠上一頁/下一頁按鈕',

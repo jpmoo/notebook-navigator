@@ -1635,19 +1635,19 @@ export const STRINGS_PL = {
             },
             enterToOpenFiles: {
                 name: 'Naciśnij Enter, aby otworzyć pliki',
-                desc: 'Otwórz pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury.'
+                desc: 'Otwieraj pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury. W macOS zapobiega to zmianie nazw plików klawiszem Enter.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Shift+Enter.'
+                desc: 'Wybierz, czy Shift+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Cmd+Enter.'
+                desc: 'Wybierz, czy Cmd+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Ctrl+Enter.'
+                desc: 'Wybierz, czy Ctrl+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             mouseBackForwardAction: {
                 name: 'Przyciski wstecz/dalej myszy',

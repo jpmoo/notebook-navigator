@@ -1624,19 +1624,19 @@ export const STRINGS_TH = {
             },
             enterToOpenFiles: {
                 name: 'กด Enter เพื่อเปิดไฟล์',
-                desc: 'เปิดไฟล์เฉพาะเมื่อกด Enter ระหว่างการนำทางด้วยแป้นพิมพ์ในรายการ'
+                desc: 'เปิดไฟล์เฉพาะเมื่อกด Enter ระหว่างการนำทางด้วยแป้นพิมพ์ในรายการ บน macOS การตั้งค่านี้จะป้องกันไม่ให้ Enter เปลี่ยนชื่อไฟล์'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Shift+Enter'
+                desc: 'เลือกว่าจะให้ Shift+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Cmd+Enter'
+                desc: 'เลือกว่าจะให้ Cmd+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Ctrl+Enter'
+                desc: 'เลือกว่าจะให้ Ctrl+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             mouseBackForwardAction: {
                 name: 'ปุ่มย้อนกลับ/ไปข้างหน้าของเมาส์',

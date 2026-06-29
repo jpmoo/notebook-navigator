@@ -1634,19 +1634,19 @@ export const STRINGS_ES = {
             },
             enterToOpenFiles: {
                 name: 'Pulsar Enter para abrir archivos',
-                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista.'
+                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista. En macOS, esto impide que Enter cambie el nombre de los archivos.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Shift+Enter.'
+                desc: 'Elegir si Shift+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Cmd+Enter.'
+                desc: 'Elegir si Cmd+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Ctrl+Enter.'
+                desc: 'Elegir si Ctrl+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             mouseBackForwardAction: {
                 name: 'Botones atrás/adelante del ratón',

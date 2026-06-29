@@ -1633,19 +1633,19 @@ export const STRINGS_PT = {
             },
             enterToOpenFiles: {
                 name: 'Pressionar Enter para abrir ficheiros',
-                desc: 'Abrir ficheiros apenas ao pressionar Enter durante a navegação por teclado na lista.'
+                desc: 'Abrir ficheiros apenas ao pressionar Enter durante a navegação por teclado na lista. No macOS, isto impede que Enter renomeie ficheiros.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Shift+Enter.'
+                desc: 'Escolher se Shift+Enter abre ou renomeia o ficheiro selecionado.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Cmd+Enter.'
+                desc: 'Escolher se Cmd+Enter abre ou renomeia o ficheiro selecionado.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Ctrl+Enter.'
+                desc: 'Escolher se Ctrl+Enter abre ou renomeia o ficheiro selecionado.'
             },
             mouseBackForwardAction: {
                 name: 'Botões voltar/avançar do rato',

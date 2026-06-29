@@ -17,11 +17,11 @@
  */
 
 import { Platform } from 'obsidian';
-import type { FileOpenContext, FolderNoteOpenLocation, MultiSelectModifier } from '../settings/types';
+import type { EnterKeyAction, FolderNoteOpenLocation, MultiSelectModifier } from '../settings/types';
 
 interface KeyboardOpenContextSettings {
-    shiftEnterOpenContext: FileOpenContext;
-    cmdCtrlEnterOpenContext: FileOpenContext;
+    shiftEnterOpenContext: EnterKeyAction;
+    cmdCtrlEnterOpenContext: EnterKeyAction;
 }
 
 interface CmdCtrlEventState {
@@ -37,7 +37,7 @@ export function isEnterKey(e: KeyboardEvent): boolean {
     return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter';
 }
 
-export function resolveKeyboardOpenContext(e: KeyboardEvent, settings: KeyboardOpenContextSettings): FileOpenContext | null {
+export function resolveKeyboardEnterAction(e: KeyboardEvent, settings: KeyboardOpenContextSettings): EnterKeyAction | null {
     const isCmdCtrl = e.metaKey || e.ctrlKey;
     if (isCmdCtrl) {
         return settings.cmdCtrlEnterOpenContext;

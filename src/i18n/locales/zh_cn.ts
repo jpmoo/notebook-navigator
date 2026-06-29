@@ -1616,19 +1616,19 @@ export const STRINGS_ZH_CN = {
             },
             enterToOpenFiles: {
                 name: '按 Enter 键打开文件',
-                desc: '仅在列表键盘导航时按 Enter 键打开文件。'
+                desc: '仅在列表键盘导航时按 Enter 键打开文件。在 macOS 上，这会阻止 Enter 键重命名文件。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: '按 Shift+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Shift+Enter 是打开还是重命名所选文件。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: '按 Cmd+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Cmd+Enter 是打开还是重命名所选文件。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: '按 Ctrl+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Ctrl+Enter 是打开还是重命名所选文件。'
             },
             mouseBackForwardAction: {
                 name: '鼠标后退/前进按钮',

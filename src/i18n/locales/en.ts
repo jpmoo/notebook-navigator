@@ -1624,19 +1624,19 @@ export const STRINGS_EN = {
             },
             enterToOpenFiles: {
                 name: 'Press Enter to open files',
-                desc: 'Open files only when pressing Enter during list keyboard navigation.'
+                desc: 'Open files only when pressing Enter during list keyboard navigation. On macOS, this stops Enter from renaming files.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Shift+Enter.'
+                desc: 'Choose whether Shift+Enter opens or renames the selected file.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Cmd+Enter.'
+                desc: 'Choose whether Cmd+Enter opens or renames the selected file.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Ctrl+Enter.'
+                desc: 'Choose whether Ctrl+Enter opens or renames the selected file.'
             },
             mouseBackForwardAction: {
                 name: 'Mouse back/forward buttons',

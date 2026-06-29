@@ -1630,19 +1630,19 @@ export const STRINGS_IT = {
             },
             enterToOpenFiles: {
                 name: 'Premi Invio per aprire i file',
-                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco."
+                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco. Su macOS, questo impedisce a Invio di rinominare i file."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Shift+Invio.'
+                desc: 'Scegli se Shift+Invio apre o rinomina il file selezionato.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Cmd+Invio.'
+                desc: 'Scegli se Cmd+Invio apre o rinomina il file selezionato.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Ctrl+Invio.'
+                desc: 'Scegli se Ctrl+Invio apre o rinomina il file selezionato.'
             },
             mouseBackForwardAction: {
                 name: 'Pulsanti indietro/avanti del mouse',

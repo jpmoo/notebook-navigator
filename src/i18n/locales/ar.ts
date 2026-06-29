@@ -1625,19 +1625,19 @@ export const STRINGS_AR = {
             },
             enterToOpenFiles: {
                 name: 'اضغط Enter لفتح الملفات',
-                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة.'
+                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة. على macOS، يمنع ذلك Enter من إعادة تسمية الملفات.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Shift+Enter.'
+                desc: 'اختر ما إذا كان Shift+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Cmd+Enter.'
+                desc: 'اختر ما إذا كان Cmd+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Ctrl+Enter.'
+                desc: 'اختر ما إذا كان Ctrl+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             mouseBackForwardAction: {
                 name: 'أزرار الرجوع/التقدم في الفأرة',

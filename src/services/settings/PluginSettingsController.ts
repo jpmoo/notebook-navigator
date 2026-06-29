@@ -53,6 +53,7 @@ import {
     isCalendarPeriodicNotesLocaleSource,
     isCalendarPlacement,
     isCalendarWeekendDays,
+    isEnterKeyAction,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
     isFolderNoteOpenLocation,
@@ -295,6 +296,16 @@ export class PluginSettingsController {
         const hadLegacyOpenFolderNotesInNewTabInStoredData = Boolean(
             storedData && Object.prototype.hasOwnProperty.call(storedData, 'openFolderNotesInNewTab')
         );
+        const hadInvalidShiftEnterOpenContextInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'shiftEnterOpenContext') &&
+            !isEnterKeyAction(storedData['shiftEnterOpenContext'])
+        );
+        const hadInvalidCmdCtrlEnterOpenContextInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'cmdCtrlEnterOpenContext') &&
+            !isEnterKeyAction(storedData['cmdCtrlEnterOpenContext'])
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -341,6 +352,12 @@ export class PluginSettingsController {
         }
 
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
+        if (!isEnterKeyAction(this.currentSettings.shiftEnterOpenContext)) {
+            this.currentSettings.shiftEnterOpenContext = DEFAULT_SETTINGS.shiftEnterOpenContext;
+        }
+        if (!isEnterKeyAction(this.currentSettings.cmdCtrlEnterOpenContext)) {
+            this.currentSettings.cmdCtrlEnterOpenContext = DEFAULT_SETTINGS.cmdCtrlEnterOpenContext;
+        }
         this.normalizeSyncModes({ storedData, isFirstLaunch });
         const syncModeRegistry = this.getSyncModeRegistry();
 
@@ -510,6 +527,8 @@ export class PluginSettingsController {
             hadUnavailableDefaultFolderSortInStoredData ||
             hadLegacyNoneGroupingInStoredData ||
             hadLegacyOpenFolderNotesInNewTabInStoredData ||
+            hadInvalidShiftEnterOpenContextInStoredData ||
+            hadInvalidCmdCtrlEnterOpenContextInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
