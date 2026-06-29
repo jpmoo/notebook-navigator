@@ -96,8 +96,24 @@ describe('buildBoardCards', () => {
 
 describe('filterBoardCards', () => {
     const cards: BoardCardModel[] = [
-        { path: 'a.md', title: 'Grocery list', previewText: 'milk and eggs', tags: [], featureImageKey: null, featureImageStatus: 'unprocessed', featureImageUrl: null },
-        { path: 'b.md', title: 'Meeting notes', previewText: 'discuss roadmap', tags: ['work'], featureImageKey: null, featureImageStatus: 'unprocessed', featureImageUrl: null }
+        {
+            path: 'a.md',
+            title: 'Grocery list',
+            previewText: 'milk and eggs',
+            tags: [],
+            featureImageKey: null,
+            featureImageStatus: 'unprocessed',
+            featureImageUrl: null
+        },
+        {
+            path: 'b.md',
+            title: 'Meeting notes',
+            previewText: 'discuss roadmap',
+            tags: ['work'],
+            featureImageKey: null,
+            featureImageStatus: 'unprocessed',
+            featureImageUrl: null
+        }
     ];
 
     it('returns all cards for an empty query', () => {

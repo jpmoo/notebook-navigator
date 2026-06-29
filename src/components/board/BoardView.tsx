@@ -233,12 +233,7 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
             <div className="nn-board-header">
                 <h1 className="nn-board-title">{data.folderName}</h1>
                 <div className="nn-board-header-actions">
-                    <button
-                        type="button"
-                        className="nn-board-toggle"
-                        onClick={toggleCollapsed}
-                        aria-pressed={collapsed}
-                    >
+                    <button type="button" className="nn-board-toggle" onClick={toggleCollapsed} aria-pressed={collapsed}>
                         {collapsed ? strings.board.expandCards : strings.board.collapseCards}
                     </button>
                     <input

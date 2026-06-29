@@ -161,6 +161,7 @@ const BOOLEAN_SETTING_KEYS = [
     'separateNoteCounts',
     'showIndentGuides',
     'smartCollapse',
+    'excludeVaultRootFromCollapse',
     'collapseOtherBranchesOnExpand',
     'autoSelectFirstFileOnFocusChange',
     'autoExpandNavItems',

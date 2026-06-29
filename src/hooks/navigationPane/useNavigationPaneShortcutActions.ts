@@ -18,7 +18,7 @@
 
 import React, { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { App, TFile, TFolder } from 'obsidian';
+import type { App, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import type { CommandQueueService } from '../../services/CommandQueueService';
 import type { NavigationSelectionState, SelectionAction } from '../../context/SelectionContext';
 import type { UIAction } from '../../context/UIStateContext';
@@ -121,6 +121,28 @@ export function useNavigationPaneShortcutActions({
 
         window.setTimeout(release, 0);
     }, [setActiveShortcut]);
+
+    const openNotePreview = useCallback(
+        (note: TFile) => {
+            const getLeaf = () => app.workspace.getLeaf(false);
+
+            const openFile = async (leaf: WorkspaceLeaf | null) => {
+                if (!leaf) {
+                    return;
+                }
+
+                await leaf.openFile(note, { active: false });
+            };
+
+            if (commandQueue) {
+                runAsyncAction(() => commandQueue.executeOpenActiveFile(note, openFile, { active: false, getLeaf }));
+                return;
+            }
+
+            runAsyncAction(() => openFile(getLeaf()));
+        },
+        [app.workspace, commandQueue]
+    );
 
     const handleShortcutFolderActivate = useCallback(
         (folder: TFolder, shortcutKey: string) => {
@@ -232,10 +254,7 @@ export function useNavigationPaneShortcutActions({
                 onRevealFile(note);
             }
 
-            const leaf = app.workspace.getLeaf(false);
-            if (leaf) {
-                runAsyncAction(() => leaf.openFile(note, { active: false }));
-            }
+            openNotePreview(note);
             if (isMobile && app.workspace.leftSplit) {
                 app.workspace.leftSplit.collapse();
             }
@@ -249,6 +268,7 @@ export function useNavigationPaneShortcutActions({
             isMobile,
             onRevealFile,
             onRevealShortcutFile,
+            openNotePreview,
             scheduleShortcutRelease,
             selectionType,
             setActiveShortcut,
@@ -279,10 +299,7 @@ export function useNavigationPaneShortcutActions({
                 onRevealFile(note);
             }
 
-            const leaf = app.workspace.getLeaf(false);
-            if (leaf) {
-                runAsyncAction(() => leaf.openFile(note, { active: false }));
-            }
+            openNotePreview(note);
             if (isMobile && app.workspace.leftSplit) {
                 app.workspace.leftSplit.collapse();
             }
@@ -295,6 +312,7 @@ export function useNavigationPaneShortcutActions({
             isMobile,
             onRevealFile,
             onRevealShortcutFile,
+            openNotePreview,
             selectionType,
             uiDispatch,
             uiState.currentSinglePaneView,

@@ -140,7 +140,7 @@ export const STRINGS_JA = {
         changeChildSortOrder: '並び順を変更',
         manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: '並び順とグループを変更',
-        defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'ビューをデフォルトに戻す',
         manualSort: '手動並べ替え',
         editSortOrder: '並べ替え順を編集...',
         removeSortProperty: '並べ替えプロパティを削除',
@@ -403,9 +403,6 @@ export const STRINGS_JA = {
         titleRows: 'タイトル行数',
         previewRows: 'プレビュー行数',
         groupBy: 'グループ分け',
-        defaultTitleOption: (rows: number) => `デフォルトタイトル行数 (${rows})`,
-        defaultPreviewOption: (rows: number) => `デフォルトプレビュー行数 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `デフォルトのグループ化 (${groupLabel})`,
         titleRowOption: (rows: number) => `タイトル${rows}行`,
         previewRowOption: (rows: number) => `プレビュー${rows}行`
     },
@@ -1019,6 +1016,7 @@ export const STRINGS_JA = {
             navigation: {
                 appearance: '外観',
                 banner: 'バナー',
+                collapseItems: '項目を折りたたむ',
                 dragAndDrop: 'ドラッグ＆ドロップ',
                 noteCounts: 'ノート数',
                 rainbowColors: 'レインボーカラー',
@@ -1228,6 +1226,14 @@ export const STRINGS_JA = {
             showCategoryIcons: {
                 name: 'ファイルタイプでアイコン設定',
                 desc: 'ファイルの拡張子に基づいてアイコンを割り当てます。'
+            },
+            fileTypeIconPreset: {
+                name: 'ファイルアイコンプリセット',
+                desc: '内蔵アイコンまたはアイコンパックのプリセットを選択します。カスタム拡張子ルールはこのプリセットを上書きします。',
+                options: {
+                    none: '内蔵アイコン'
+                },
+                notInstalledWarning: 'このアイコンパックはインストールされていません。代わりに内蔵アイコンが表示されます。'
             },
             fileTypeIconMap: {
                 name: 'ファイルタイプアイコンマップ',
@@ -1647,19 +1653,19 @@ export const STRINGS_JA = {
             },
             enterToOpenFiles: {
                 name: 'Enterキーでファイルを開く',
-                desc: 'リストのキーボード操作中にEnterキーを押したときのみファイルを開きます。'
+                desc: 'リストのキーボード操作中にEnterキーを押したときのみファイルを開きます。macOSでは、Enterキーでファイル名が変更されないようにします。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
+                desc: 'Shift+Enterで選択したファイルを開くか名前を変更するかを選択します。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
+                desc: 'Cmd+Enterで選択したファイルを開くか名前を変更するかを選択します。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
+                desc: 'Ctrl+Enterで選択したファイルを開くか名前を変更するかを選択します。'
             },
             mouseBackForwardAction: {
                 name: 'マウスの戻る/進むボタン',
@@ -2104,6 +2110,10 @@ export const STRINGS_JA = {
                 name: '選択中の項目を展開したままにする',
                 desc: '折りたたむ時、選択中の項目とその親を展開したままにします。'
             },
+            excludeVaultRootFromCollapse: {
+                name: '折りたたみ時にボールトのルートをスキップ',
+                desc: 'すべての項目を折りたたむ時、ボールトのルートフォルダを現在の状態のままにします。'
+            },
             navIndent: {
                 name: 'ツリーインデント',
                 desc: 'ネストされたフォルダ、タグ、プロパティのインデント幅を調整します（ピクセル）。'
@@ -2276,7 +2286,7 @@ export const STRINGS_JA = {
             },
             deleteAttachments: {
                 name: 'ファイル削除時に添付ファイルを削除',
-                desc: '削除されたファイルにリンクされた添付ファイルが他で使用されていない場合、自動的に削除する',
+                desc: 'リンクされた添付ファイルと生成された描画プレビューが他で使用されていない場合、自動的に削除する',
                 options: {
                     ask: '毎回確認',
                     always: '常に',

@@ -141,7 +141,7 @@ export const STRINGS_IT = {
         changeChildSortOrder: 'Cambia ordine',
         manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Cambia ordine e raggruppamento',
-        defaultSort: 'Predefinito', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Ripristina vista alle impostazioni predefinite',
         manualSort: 'Ordinamento manuale',
         editSortOrder: 'Modifica ordinamento...',
         removeSortProperty: 'Rimuovi proprietà di ordinamento',
@@ -403,9 +403,6 @@ export const STRINGS_IT = {
         titleRows: 'Righe titolo',
         previewRows: 'Righe anteprima',
         groupBy: 'Raggruppa per',
-        defaultTitleOption: (rows: number) => `Righe titolo predefinite (${rows})`,
-        defaultPreviewOption: (rows: number) => `Righe anteprima predefinite (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Raggruppamento predefinito (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ${rows === 1 ? 'riga' : 'righe'} titolo`,
         previewRowOption: (rows: number) => `${rows} ${rows === 1 ? 'riga' : 'righe'} anteprima`
     },
@@ -1016,6 +1013,7 @@ export const STRINGS_IT = {
             navigation: {
                 appearance: 'Aspetto',
                 banner: 'Banner',
+                collapseItems: 'Comprimi elementi',
                 dragAndDrop: 'Trascina e rilascia',
                 noteCounts: 'Conteggi note',
                 rainbowColors: 'Colori arcobaleno',
@@ -1225,6 +1223,14 @@ export const STRINGS_IT = {
             showCategoryIcons: {
                 name: 'Icone per tipo file',
                 desc: 'Assegna icone ai file in base alla loro estensione.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preset icone file',
+                desc: 'Scegli le icone integrate o un preset di pacchetto icone. Le regole di estensione personalizzate sostituiscono questo preset.',
+                options: {
+                    none: 'Icone integrate'
+                },
+                notInstalledWarning: 'Questo pacchetto icone non è installato. Vengono mostrate invece le icone integrate.'
             },
             fileTypeIconMap: {
                 name: 'Mappa icone per tipo',
@@ -1648,19 +1654,19 @@ export const STRINGS_IT = {
             },
             enterToOpenFiles: {
                 name: 'Premi Invio per aprire i file',
-                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco."
+                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco. Su macOS, questo impedisce a Invio di rinominare i file."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Shift+Invio.'
+                desc: 'Scegli se Shift+Invio apre o rinomina il file selezionato.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Cmd+Invio.'
+                desc: 'Scegli se Cmd+Invio apre o rinomina il file selezionato.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Ctrl+Invio.'
+                desc: 'Scegli se Ctrl+Invio apre o rinomina il file selezionato.'
             },
             mouseBackForwardAction: {
                 name: 'Pulsanti indietro/avanti del mouse',
@@ -2105,6 +2111,10 @@ export const STRINGS_IT = {
                 name: 'Mantieni elemento selezionato espanso',
                 desc: "Quando comprimi, mantieni l'elemento selezionato e i suoi genitori espansi."
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Ignora la root del vault quando comprimi',
+                desc: 'Quando comprimi tutti gli elementi, lascia la cartella root del vault nello stato corrente.'
+            },
             navIndent: {
                 name: 'Indentazione albero',
                 desc: 'Regola la larghezza indentazione per cartelle, tag e proprietà nidificati (pixel).'
@@ -2277,7 +2287,7 @@ export const STRINGS_IT = {
             },
             deleteAttachments: {
                 name: 'Elimina allegati quando si eliminano i file',
-                desc: 'Rimuovi automaticamente gli allegati collegati al file eliminato se non sono utilizzati altrove',
+                desc: 'Rimuovi automaticamente gli allegati collegati e le anteprime dei disegni generate se non sono utilizzati altrove',
                 options: {
                     ask: 'Chiedi ogni volta',
                     always: 'Sempre',

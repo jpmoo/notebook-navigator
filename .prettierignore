@@ -51,3 +51,6 @@ yarn.lock
 # Minified files
 *.min.js
 *.min.css
+
+# Fork-local untracked VSCode extension (not part of this repo)
+wexplore/

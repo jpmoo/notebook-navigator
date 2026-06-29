@@ -298,8 +298,11 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         const manualOrder = isRoot ? settings.rootFolderOrder : metadataService.getFolderChildManualOrder(folder.path);
         const hasManualOrder = isRoot ? settings.rootFolderOrder.length > 0 : manualOrder !== undefined;
         const saveManualOrder = (orderedPaths: string[]) =>
-            isRoot ? metadataService.setRootFolderOrder(orderedPaths) : metadataService.setFolderChildManualOrder(folder.path, orderedPaths);
-        const clearManualOrder = () => (isRoot ? metadataService.clearRootFolderOrder() : metadataService.removeFolderChildManualOrder(folder.path));
+            isRoot
+                ? metadataService.setRootFolderOrder(orderedPaths)
+                : metadataService.setFolderChildManualOrder(folder.path, orderedPaths);
+        const clearManualOrder = () =>
+            isRoot ? metadataService.clearRootFolderOrder() : metadataService.removeFolderChildManualOrder(folder.path);
 
         const openReorderSubfoldersModal = () => {
             new ReorderSubfoldersModal(app, folder, manualOrder, orderedPaths => {
@@ -346,7 +349,9 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon);
 
             sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride && !hasManualOrder);
+                subItem
+                    .setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`)
+                    .setChecked(!currentOverride && !hasManualOrder);
                 setAsyncOnClick(subItem, async () => {
                     await clearManualOrder();
                     await metadataService.removeFolderChildSortOrderOverride(folder.path);

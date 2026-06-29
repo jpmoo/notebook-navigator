@@ -141,7 +141,7 @@ export const STRINGS_AR = {
         changeChildSortOrder: 'تغيير ترتيب الفرز',
         manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
-        defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'إعادة تعيين العرض إلى الإعدادات الافتراضية',
         manualSort: 'فرز يدوي',
         editSortOrder: 'تحرير ترتيب الفرز...',
         removeSortProperty: 'إزالة خاصية الفرز',
@@ -403,9 +403,6 @@ export const STRINGS_AR = {
         titleRows: 'صفوف العنوان',
         previewRows: 'صفوف المعاينة',
         groupBy: 'تجميع حسب',
-        defaultTitleOption: (rows: number) => `صفوف العنوان الافتراضية (${rows})`,
-        defaultPreviewOption: (rows: number) => `صفوف المعاينة الافتراضية (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `التجميع الافتراضي (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} صف عنوان`,
         previewRowOption: (rows: number) => `${rows} صف معاينة`
     },
@@ -1015,6 +1012,7 @@ export const STRINGS_AR = {
             navigation: {
                 appearance: 'المظهر',
                 banner: 'اللافتة',
+                collapseItems: 'طي العناصر',
                 dragAndDrop: 'السحب والإفلات',
                 noteCounts: 'عدد الملاحظات',
                 rainbowColors: 'ألوان قوس قزح',
@@ -1224,6 +1222,14 @@ export const STRINGS_AR = {
             showCategoryIcons: {
                 name: 'أيقونات حسب نوع الملف',
                 desc: 'تعيين أيقونات للملفات بناءً على امتدادها.'
+            },
+            fileTypeIconPreset: {
+                name: 'إعداد أيقونات الملفات المسبق',
+                desc: 'اختر الأيقونات المدمجة أو إعدادًا مسبقًا لحزمة أيقونات. تتجاوز قواعد الامتدادات المخصصة هذا الإعداد المسبق.',
+                options: {
+                    none: 'الأيقونات المدمجة'
+                },
+                notInstalledWarning: 'حزمة الأيقونات هذه غير مثبتة. تُعرض الأيقونات المدمجة بدلاً منها.'
             },
             fileTypeIconMap: {
                 name: 'خريطة أيقونات نوع الملف',
@@ -1643,19 +1649,19 @@ export const STRINGS_AR = {
             },
             enterToOpenFiles: {
                 name: 'اضغط Enter لفتح الملفات',
-                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة.'
+                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة. على macOS، يمنع ذلك Enter من إعادة تسمية الملفات.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Shift+Enter.'
+                desc: 'اختر ما إذا كان Shift+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Cmd+Enter.'
+                desc: 'اختر ما إذا كان Cmd+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Ctrl+Enter.'
+                desc: 'اختر ما إذا كان Ctrl+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             mouseBackForwardAction: {
                 name: 'أزرار الرجوع/التقدم في الفأرة',
@@ -2100,6 +2106,10 @@ export const STRINGS_AR = {
                 name: 'إبقاء العنصر المحدد موسعًا',
                 desc: 'عند الطي، إبقاء العنصر المحدد وآبائه موسعين.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'تخطي جذر الخزنة عند الطي',
+                desc: 'عند طي كل العناصر، اترك مجلد جذر الخزنة في حالته الحالية.'
+            },
             navIndent: {
                 name: 'مسافة بادئة الشجرة',
                 desc: 'ضبط عرض المسافة البادئة للمجلدات والوسوم والخصائص المتداخلة (بالبكسل).'
@@ -2272,7 +2282,7 @@ export const STRINGS_AR = {
             },
             deleteAttachments: {
                 name: 'حذف المرفقات عند حذف الملفات',
-                desc: 'إزالة المرفقات المرتبطة بالملف المحذوف تلقائيًا إذا لم تكن مستخدمة في مكان آخر',
+                desc: 'إزالة المرفقات المرتبطة ومعاينات الرسومات المُنشأة تلقائيًا إذا لم تكن مستخدمة في مكان آخر',
                 options: {
                     ask: 'السؤال في كل مرة',
                     always: 'دائمًا',

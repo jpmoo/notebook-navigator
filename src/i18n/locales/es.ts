@@ -140,7 +140,7 @@ export const STRINGS_ES = {
         changeChildSortOrder: 'Cambiar orden de clasificación',
         manualChildSortOrder: 'Manual (drag to reorder)',
         changeSortAndGroup: 'Cambiar orden y agrupación',
-        defaultSort: 'Predeterminado', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Restablecer vista a valores predeterminados',
         manualSort: 'Orden manual',
         editSortOrder: 'Editar orden de clasificación...',
         removeSortProperty: 'Eliminar propiedad de orden',
@@ -404,9 +404,6 @@ export const STRINGS_ES = {
         titleRows: 'Filas de título',
         previewRows: 'Filas de vista previa',
         groupBy: 'Agrupar por',
-        defaultTitleOption: (rows: number) => `Filas de título predeterminadas (${rows})`,
-        defaultPreviewOption: (rows: number) => `Filas de vista previa predeterminadas (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Agrupación predeterminada (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de vista previa`
     },
@@ -1021,6 +1018,7 @@ export const STRINGS_ES = {
             navigation: {
                 appearance: 'Apariencia',
                 banner: 'Banner',
+                collapseItems: 'Contraer elementos',
                 dragAndDrop: 'Arrastrar y soltar',
                 noteCounts: 'Conteos de notas',
                 rainbowColors: 'Colores arcoíris',
@@ -1230,6 +1228,14 @@ export const STRINGS_ES = {
             showCategoryIcons: {
                 name: 'Iconos por tipo de archivo',
                 desc: 'Asignar iconos a archivos según su extensión.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preajuste de iconos de archivo',
+                desc: 'Elegir los iconos integrados o un preajuste de paquete de iconos. Las reglas de extensión personalizadas anulan este preajuste.',
+                options: {
+                    none: 'Iconos integrados'
+                },
+                notInstalledWarning: 'Este paquete de iconos no está instalado. En su lugar se muestran los iconos integrados.'
             },
             fileTypeIconMap: {
                 name: 'Mapa de iconos por tipo',
@@ -1652,19 +1658,19 @@ export const STRINGS_ES = {
             },
             enterToOpenFiles: {
                 name: 'Pulsar Enter para abrir archivos',
-                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista.'
+                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista. En macOS, esto impide que Enter cambie el nombre de los archivos.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Shift+Enter.'
+                desc: 'Elegir si Shift+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Cmd+Enter.'
+                desc: 'Elegir si Cmd+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Ctrl+Enter.'
+                desc: 'Elegir si Ctrl+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             mouseBackForwardAction: {
                 name: 'Botones atrás/adelante del ratón',
@@ -2109,6 +2115,10 @@ export const STRINGS_ES = {
                 name: 'Mantener elemento seleccionado expandido',
                 desc: 'Al contraer, mantiene el elemento seleccionado y sus elementos principales expandidos.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Omitir raíz de la bóveda al contraer',
+                desc: 'Al contraer todos los elementos, deja la carpeta raíz de la bóveda en su estado actual.'
+            },
             navIndent: {
                 name: 'Sangría del árbol',
                 desc: 'Ajustar el ancho de sangría para carpetas, etiquetas y propiedades anidadas (píxeles).'
@@ -2282,7 +2292,7 @@ export const STRINGS_ES = {
             },
             deleteAttachments: {
                 name: 'Eliminar adjuntos al eliminar archivos',
-                desc: 'Eliminar automáticamente los adjuntos vinculados al archivo eliminado si no se usan en otro lugar',
+                desc: 'Eliminar automáticamente los adjuntos vinculados y las vistas previas de dibujos generadas si no se usan en otro lugar',
                 options: {
                     ask: 'Preguntar cada vez',
                     always: 'Siempre',

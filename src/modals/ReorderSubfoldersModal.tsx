@@ -101,7 +101,9 @@ function ReorderSubfoldersContent({ folderName, initialEntries, onSave, onCancel
 
     return (
         <div className="nn-reorder-subfolders">
-            <div className="nn-reorder-subfolders-hint">{strings.modals.reorderSubfolders.instructions.replace('{folder}', folderName)}</div>
+            <div className="nn-reorder-subfolders-hint">
+                {strings.modals.reorderSubfolders.instructions.replace('{folder}', folderName)}
+            </div>
             <div className="nn-reorder-subfolders-list">
                 <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                     <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
