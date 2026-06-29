@@ -130,6 +130,7 @@ interface DisplayNameRenameInputOptions {
 
 interface FrontmatterDisplayNameTarget {
     field: string;
+    fallbackValue: string;
     initialValue: string;
     storedValue: string | null;
 }
@@ -590,11 +591,21 @@ export class FileSystemOperations {
             firstExistingField = firstExistingField ?? matchingField;
             const displayName = this.extractFrontmatterDisplayNameValue(frontmatter?.[matchingField]);
             if (displayName) {
-                return { field: matchingField, initialValue: displayName, storedValue: displayName };
+                return {
+                    field: matchingField,
+                    fallbackValue: fallbackInitialValue ?? '',
+                    initialValue: displayName,
+                    storedValue: displayName
+                };
             }
         }
 
-        return { field: firstExistingField ?? fallbackField, initialValue: fallbackInitialValue ?? '', storedValue: null };
+        return {
+            field: firstExistingField ?? fallbackField,
+            fallbackValue: fallbackInitialValue ?? '',
+            initialValue: fallbackInitialValue ?? '',
+            storedValue: null
+        };
     }
 
     private resolveFolderFrontmatterDisplayNameTarget(folder: TFolder): { file: TFile; target: FrontmatterDisplayNameTarget } | null {
@@ -617,7 +628,7 @@ export class FileSystemOperations {
         const nextValue = value.trim();
         await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
             const targetField = findMatchingRecordKey(frontmatter, target.field) ?? target.field;
-            if (nextValue.length > 0) {
+            if (nextValue.length > 0 && nextValue !== target.fallbackValue.trim()) {
                 frontmatter[targetField] = nextValue;
                 return;
             }
@@ -634,7 +645,7 @@ export class FileSystemOperations {
             return nextValue !== target.storedValue;
         }
 
-        return nextValue.length > 0 && nextValue !== target.initialValue.trim();
+        return nextValue.length > 0 && nextValue !== target.fallbackValue.trim();
     }
 
     /**
