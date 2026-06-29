@@ -235,6 +235,14 @@ export class MetadataService {
         return this.folderService.removeFolderChildManualOrder(parentPath);
     }
 
+    async setRootFolderOrder(orderedPaths: string[]): Promise<void> {
+        return this.folderService.setRootFolderOrder(orderedPaths);
+    }
+
+    async clearRootFolderOrder(): Promise<void> {
+        return this.folderService.clearRootFolderOrder();
+    }
+
     async handleFolderRename(oldPath: string, newPath: string): Promise<void> {
         await this.folderService.handleFolderRename(oldPath, newPath, settings =>
             this.navigationSeparatorService.applyFolderRename(settings, oldPath, newPath)

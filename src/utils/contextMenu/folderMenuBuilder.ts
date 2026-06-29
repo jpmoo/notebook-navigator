@@ -291,13 +291,20 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
         const subfolderCount = folder.children.reduce((count, child) => (child instanceof TFolder ? count + 1 : count), 0);
         const canReorderSubfolders = subfolderCount >= 2;
-        const manualOrder = metadataService.getFolderChildManualOrder(folder.path);
-        const hasManualOrder = manualOrder !== undefined;
+        // The vault root's children are the top-level folders, whose order lives in the
+        // dedicated rootFolderOrder store (shared with the root-reorder toolbar), not the
+        // per-parent manual map — so route root ordering there.
+        const isRoot = folder.path === '/';
+        const manualOrder = isRoot ? settings.rootFolderOrder : metadataService.getFolderChildManualOrder(folder.path);
+        const hasManualOrder = isRoot ? settings.rootFolderOrder.length > 0 : manualOrder !== undefined;
+        const saveManualOrder = (orderedPaths: string[]) =>
+            isRoot ? metadataService.setRootFolderOrder(orderedPaths) : metadataService.setFolderChildManualOrder(folder.path, orderedPaths);
+        const clearManualOrder = () => (isRoot ? metadataService.clearRootFolderOrder() : metadataService.removeFolderChildManualOrder(folder.path));
 
         const openReorderSubfoldersModal = () => {
             new ReorderSubfoldersModal(app, folder, manualOrder, orderedPaths => {
                 runAsyncAction(async () => {
-                    await metadataService.setFolderChildManualOrder(folder.path, orderedPaths);
+                    await saveManualOrder(orderedPaths);
                     app.workspace.requestSaveLayout();
                 });
             }).open();
@@ -341,7 +348,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride && !hasManualOrder);
                 setAsyncOnClick(subItem, async () => {
-                    await metadataService.removeFolderChildManualOrder(folder.path);
+                    await clearManualOrder();
                     await metadataService.removeFolderChildSortOrderOverride(folder.path);
                     app.workspace.requestSaveLayout();
                 });
@@ -354,7 +361,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     .setTitle(strings.settings.items.folderSortOrder.options.alphaAsc)
                     .setChecked(!hasManualOrder && currentOverride === 'alpha-asc');
                 setAsyncOnClick(subItem, async () => {
-                    await metadataService.removeFolderChildManualOrder(folder.path);
+                    await clearManualOrder();
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-asc');
                     app.workspace.requestSaveLayout();
                 });
@@ -365,7 +372,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     .setTitle(strings.settings.items.folderSortOrder.options.alphaDesc)
                     .setChecked(!hasManualOrder && currentOverride === 'alpha-desc');
                 setAsyncOnClick(subItem, async () => {
-                    await metadataService.removeFolderChildManualOrder(folder.path);
+                    await clearManualOrder();
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-desc');
                     app.workspace.requestSaveLayout();
                 });

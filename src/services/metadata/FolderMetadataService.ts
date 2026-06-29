@@ -786,6 +786,26 @@ export class FolderMetadataService extends BaseMetadataService {
         });
     }
 
+    /**
+     * Sets the manual order of the top-level (root) folders. Root order has its own store
+     * (rootFolderOrder, shared with the root-reorder toolbar) rather than the per-parent map.
+     */
+    async setRootFolderOrder(orderedPaths: string[]): Promise<void> {
+        await this.saveAndUpdate(settings => {
+            settings.rootFolderOrder = [...orderedPaths];
+        });
+    }
+
+    /** Clears the manual top-level folder order (reverts to alphabetical). */
+    async clearRootFolderOrder(): Promise<void> {
+        if (!this.settingsProvider.settings.rootFolderOrder?.length) {
+            return;
+        }
+        await this.saveAndUpdate(settings => {
+            settings.rootFolderOrder = [];
+        });
+    }
+
     async handleFolderRename(oldPath: string, newPath: string, extraMutation?: SettingsMutation): Promise<void> {
         this.folderDisplayCache.clear();
         const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'folder', oldPath, newPath);
