@@ -139,7 +139,7 @@ export const STRINGS_KO = {
         mobileBackToNavigation: '탐색으로 돌아가기', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '정렬 순서 변경',
         changeSortAndGroup: '정렬 및 그룹 변경',
-        defaultSort: '기본', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: '보기를 기본값으로 재설정',
         manualSort: '수동 정렬',
         editSortOrder: '정렬 순서 편집...',
         removeSortProperty: '정렬 속성 제거',
@@ -397,9 +397,6 @@ export const STRINGS_KO = {
         titleRows: '제목 행',
         previewRows: '미리보기 행',
         groupBy: '그룹화 기준',
-        defaultTitleOption: (rows: number) => `기본 제목 행 (${rows})`,
-        defaultPreviewOption: (rows: number) => `기본 미리보기 행 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `기본 그룹화 (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows}개 제목 행`,
         previewRowOption: (rows: number) => `${rows}개 미리보기 행`
     },
@@ -1627,19 +1624,19 @@ export const STRINGS_KO = {
             },
             enterToOpenFiles: {
                 name: 'Enter 키로 파일 열기',
-                desc: '목록 키보드 탐색 중 Enter 키를 누를 때만 파일을 엽니다.'
+                desc: '목록 키보드 탐색 중 Enter 키를 누를 때만 파일을 엽니다. macOS에서는 Enter 키가 파일 이름을 변경하지 않도록 합니다.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Shift+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Cmd+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Ctrl+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             mouseBackForwardAction: {
                 name: '마우스 뒤로/앞으로 버튼',

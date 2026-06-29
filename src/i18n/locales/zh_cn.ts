@@ -139,7 +139,7 @@ export const STRINGS_ZH_CN = {
         mobileBackToNavigation: '返回导航', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '更改排序方式',
         changeSortAndGroup: '更改排序和分组',
-        defaultSort: '默认', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: '将视图重置为默认值',
         manualSort: '手动排序',
         editSortOrder: '编辑排序方式...',
         removeSortProperty: '移除排序属性',
@@ -398,9 +398,6 @@ export const STRINGS_ZH_CN = {
         titleRows: '标题行数',
         previewRows: '预览行数',
         groupBy: '分组依据',
-        defaultTitleOption: (rows: number) => `默认标题行数 (${rows})`,
-        defaultPreviewOption: (rows: number) => `默认预览行数 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `默认分组 (${groupLabel})`,
         titleRowOption: (rows: number) => `标题${rows}行`,
         previewRowOption: (rows: number) => `预览${rows}行`
     },
@@ -1616,19 +1613,19 @@ export const STRINGS_ZH_CN = {
             },
             enterToOpenFiles: {
                 name: '按 Enter 键打开文件',
-                desc: '仅在列表键盘导航时按 Enter 键打开文件。'
+                desc: '仅在列表键盘导航时按 Enter 键打开文件。在 macOS 上，这会阻止 Enter 键重命名文件。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: '按 Shift+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Shift+Enter 是打开还是重命名所选文件。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: '按 Cmd+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Cmd+Enter 是打开还是重命名所选文件。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: '按 Ctrl+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Ctrl+Enter 是打开还是重命名所选文件。'
             },
             mouseBackForwardAction: {
                 name: '鼠标后退/前进按钮',

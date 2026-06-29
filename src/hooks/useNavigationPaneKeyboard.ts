@@ -45,7 +45,7 @@ import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortc
 import { runAsyncAction } from '../utils/async';
 import { getNavigationIndex } from '../utils/navigationIndex';
 import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
-import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardEnterAction } from '../utils/keyboardOpenContext';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
 import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../utils/navigationExpansion';
 
@@ -290,8 +290,13 @@ export function useNavigationPaneKeyboard({
                 if (folderNote) {
                     e.preventDefault();
 
-                    const modifierContext = resolveKeyboardOpenContext(e, settings);
-                    const openContext = modifierContext ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
+                    const modifierAction = resolveKeyboardEnterAction(e, settings);
+                    if (modifierAction === 'rename') {
+                        onStartRename?.();
+                        return;
+                    }
+
+                    const openContext = modifierAction ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
 
                     runAsyncAction(() =>
                         openFolderNoteFile({

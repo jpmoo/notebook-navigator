@@ -140,7 +140,7 @@ export const STRINGS_EN = {
         mobileBackToNavigation: 'Back to navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
-        defaultSort: 'Default', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Reset view to defaults',
         manualSort: 'Manual sort',
         editSortOrder: 'Edit sort order...',
         removeSortProperty: 'Remove sort property',
@@ -398,9 +398,6 @@ export const STRINGS_EN = {
         titleRows: 'Title rows',
         previewRows: 'Preview rows',
         groupBy: 'Group by',
-        defaultTitleOption: (rows: number) => `Default title rows (${rows})`,
-        defaultPreviewOption: (rows: number) => `Default preview rows (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Default grouping (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} title row${rows === 1 ? '' : 's'}`,
         previewRowOption: (rows: number) => `${rows} preview row${rows === 1 ? '' : 's'}`
     },
@@ -1624,19 +1621,19 @@ export const STRINGS_EN = {
             },
             enterToOpenFiles: {
                 name: 'Press Enter to open files',
-                desc: 'Open files only when pressing Enter during list keyboard navigation.'
+                desc: 'Open files only when pressing Enter during list keyboard navigation. On macOS, this stops Enter from renaming files.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Shift+Enter.'
+                desc: 'Choose whether Shift+Enter opens or renames the selected file.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Cmd+Enter.'
+                desc: 'Choose whether Cmd+Enter opens or renames the selected file.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Ctrl+Enter.'
+                desc: 'Choose whether Ctrl+Enter opens or renames the selected file.'
             },
             mouseBackForwardAction: {
                 name: 'Mouse back/forward buttons',

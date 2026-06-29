@@ -140,7 +140,7 @@ export const STRINGS_PL = {
         mobileBackToNavigation: 'Wróć do nawigacji', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Zmień kolejność sortowania',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
-        defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Przywróć widok do ustawień domyślnych',
         manualSort: 'Sortowanie ręczne',
         editSortOrder: 'Edytuj kolejność sortowania...',
         removeSortProperty: 'Usuń atrybut sortowania',
@@ -399,9 +399,6 @@ export const STRINGS_PL = {
         titleRows: 'Wiersze tytułu',
         previewRows: 'Wiersze podglądu',
         groupBy: 'Grupuj według',
-        defaultTitleOption: (rows: number) => `Domyślne wiersze tytułu (${rows})`,
-        defaultPreviewOption: (rows: number) => `Domyślne wiersze podglądu (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Domyślne grupowanie (${groupLabel})`,
         titleRowOption: (rows: number) =>
             `${rows} ${rows === 1 ? 'wiersz' : rows === 2 || rows === 3 || rows === 4 ? 'wiersze' : 'wierszy'} tytułu`,
         previewRowOption: (rows: number) =>
@@ -1635,19 +1632,19 @@ export const STRINGS_PL = {
             },
             enterToOpenFiles: {
                 name: 'Naciśnij Enter, aby otworzyć pliki',
-                desc: 'Otwórz pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury.'
+                desc: 'Otwieraj pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury. W macOS zapobiega to zmianie nazw plików klawiszem Enter.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Shift+Enter.'
+                desc: 'Wybierz, czy Shift+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Cmd+Enter.'
+                desc: 'Wybierz, czy Cmd+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Ctrl+Enter.'
+                desc: 'Wybierz, czy Ctrl+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             mouseBackForwardAction: {
                 name: 'Przyciski wstecz/dalej myszy',

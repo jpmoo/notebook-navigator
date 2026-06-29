@@ -140,7 +140,7 @@ export const STRINGS_ID = {
         mobileBackToNavigation: 'Kembali ke navigasi',
         changeChildSortOrder: 'Ubah urutan',
         changeSortAndGroup: 'Ubah urutan dan grup',
-        defaultSort: 'Default',
+        resetViewToDefaults: 'Atur ulang tampilan ke default',
         manualSort: 'Urutan manual',
         editSortOrder: 'Edit urutan...',
         removeSortProperty: 'Hapus properti urutan',
@@ -399,9 +399,6 @@ export const STRINGS_ID = {
         titleRows: 'Baris judul',
         previewRows: 'Baris pratinjau',
         groupBy: 'Kelompokkan berdasarkan',
-        defaultTitleOption: (rows: number) => `Baris judul default (${rows})`,
-        defaultPreviewOption: (rows: number) => `Baris pratinjau default (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Pengelompokan default (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} baris judul`,
         previewRowOption: (rows: number) => `${rows} baris pratinjau`
     },
@@ -1631,19 +1628,19 @@ export const STRINGS_ID = {
             },
             enterToOpenFiles: {
                 name: 'Tekan Enter untuk membuka file',
-                desc: 'Buka file hanya saat menekan Enter selama navigasi keyboard di daftar.'
+                desc: 'Buka file hanya saat menekan Enter selama navigasi keyboard di daftar. Di macOS, ini mencegah Enter mengganti nama file.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Shift+Enter.'
+                desc: 'Pilih apakah Shift+Enter membuka atau mengganti nama file yang dipilih.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Cmd+Enter.'
+                desc: 'Pilih apakah Cmd+Enter membuka atau mengganti nama file yang dipilih.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Ctrl+Enter.'
+                desc: 'Pilih apakah Ctrl+Enter membuka atau mengganti nama file yang dipilih.'
             },
             mouseBackForwardAction: {
                 name: 'Tombol mundur/maju mouse',

@@ -140,7 +140,7 @@ export const STRINGS_AR = {
         mobileBackToNavigation: 'العودة للتنقل', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'تغيير ترتيب الفرز',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
-        defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'إعادة تعيين العرض إلى الإعدادات الافتراضية',
         manualSort: 'فرز يدوي',
         editSortOrder: 'تحرير ترتيب الفرز...',
         removeSortProperty: 'إزالة خاصية الفرز',
@@ -398,9 +398,6 @@ export const STRINGS_AR = {
         titleRows: 'صفوف العنوان',
         previewRows: 'صفوف المعاينة',
         groupBy: 'تجميع حسب',
-        defaultTitleOption: (rows: number) => `صفوف العنوان الافتراضية (${rows})`,
-        defaultPreviewOption: (rows: number) => `صفوف المعاينة الافتراضية (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `التجميع الافتراضي (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} صف عنوان`,
         previewRowOption: (rows: number) => `${rows} صف معاينة`
     },
@@ -1625,19 +1622,19 @@ export const STRINGS_AR = {
             },
             enterToOpenFiles: {
                 name: 'اضغط Enter لفتح الملفات',
-                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة.'
+                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة. على macOS، يمنع ذلك Enter من إعادة تسمية الملفات.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Shift+Enter.'
+                desc: 'اختر ما إذا كان Shift+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Cmd+Enter.'
+                desc: 'اختر ما إذا كان Cmd+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Ctrl+Enter.'
+                desc: 'اختر ما إذا كان Ctrl+Enter يفتح الملف المحدد أو يعيد تسميته.'
             },
             mouseBackForwardAction: {
                 name: 'أزرار الرجوع/التقدم في الفأرة',

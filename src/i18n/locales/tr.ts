@@ -140,7 +140,7 @@ export const STRINGS_TR = {
         mobileBackToNavigation: 'Gezinmeye dön', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sıralama düzenini değiştir',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
-        defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Görünümü varsayılanlara sıfırla',
         manualSort: 'Manuel sıralama',
         editSortOrder: 'Sıralama düzenini düzenle...',
         removeSortProperty: 'Sıralama özelliğini kaldır',
@@ -399,9 +399,6 @@ export const STRINGS_TR = {
         titleRows: 'Başlık satırları',
         previewRows: 'Önizleme satırları',
         groupBy: 'Grupla',
-        defaultTitleOption: (rows: number) => `Varsayılan başlık satırları (${rows})`,
-        defaultPreviewOption: (rows: number) => `Varsayılan önizleme satırları (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Varsayılan gruplama (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} başlık satırı`,
         previewRowOption: (rows: number) => `${rows} önizleme satırı`
     },
@@ -1629,19 +1626,19 @@ export const STRINGS_TR = {
             },
             enterToOpenFiles: {
                 name: "Dosyaları açmak için Enter'a basın",
-                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın."
+                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın. macOS'ta bu, Enter'ın dosyaları yeniden adlandırmasını engeller."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Shift+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Cmd+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Ctrl+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             mouseBackForwardAction: {
                 name: 'Fare geri/ileri düğmeleri',

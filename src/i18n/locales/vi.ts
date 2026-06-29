@@ -140,7 +140,7 @@ export const STRINGS_VI = {
         mobileBackToNavigation: 'Quay lại điều hướng', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Đổi thứ tự sắp xếp',
         changeSortAndGroup: 'Đổi sắp xếp và nhóm',
-        defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Đặt lại chế độ xem về mặc định',
         manualSort: 'Sắp xếp thủ công',
         editSortOrder: 'Chỉnh sửa thứ tự sắp xếp...',
         removeSortProperty: 'Xóa thuộc tính sắp xếp',
@@ -398,9 +398,6 @@ export const STRINGS_VI = {
         titleRows: 'Dòng tiêu đề',
         previewRows: 'Dòng xem trước',
         groupBy: 'Nhóm theo',
-        defaultTitleOption: (rows: number) => `Dòng tiêu đề mặc định (${rows})`,
-        defaultPreviewOption: (rows: number) => `Dòng xem trước mặc định (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Nhóm mặc định (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} dòng tiêu đề`,
         previewRowOption: (rows: number) => `${rows} dòng xem trước`
     },
@@ -1632,19 +1629,19 @@ export const STRINGS_VI = {
             },
             enterToOpenFiles: {
                 name: 'Nhấn Enter để mở tệp',
-                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách.'
+                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách. Trên macOS, thao tác này ngăn Enter đổi tên tệp.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Shift+Enter.'
+                desc: 'Chọn Shift+Enter mở hay đổi tên tệp đã chọn.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Cmd+Enter.'
+                desc: 'Chọn Cmd+Enter mở hay đổi tên tệp đã chọn.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Ctrl+Enter.'
+                desc: 'Chọn Ctrl+Enter mở hay đổi tên tệp đã chọn.'
             },
             mouseBackForwardAction: {
                 name: 'Nút quay lại/tiến lên của chuột',

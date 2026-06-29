@@ -140,7 +140,7 @@ export const STRINGS_RU = {
         mobileBackToNavigation: 'Назад к навигации', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Изменить сортировку',
         changeSortAndGroup: 'Изменить сортировку и группировку',
-        defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Сбросить вид к настройкам по умолчанию',
         manualSort: 'Ручная сортировка',
         editSortOrder: 'Изменить порядок сортировки...',
         removeSortProperty: 'Удалить свойство сортировки',
@@ -399,9 +399,6 @@ export const STRINGS_RU = {
         titleRows: 'Строки заголовка',
         previewRows: 'Строки превью',
         groupBy: 'Группировать по',
-        defaultTitleOption: (rows: number) => `Строк заголовка по умолчанию (${rows})`,
-        defaultPreviewOption: (rows: number) => `Строк превью по умолчанию (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Группировка по умолчанию (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ${rows === 1 ? 'строка' : rows < 5 ? 'строки' : 'строк'} заголовка`,
         previewRowOption: (rows: number) => `${rows} ${rows === 1 ? 'строка' : rows < 5 ? 'строки' : 'строк'} превью`
     },
@@ -1628,19 +1625,19 @@ export const STRINGS_RU = {
             },
             enterToOpenFiles: {
                 name: 'Нажать Enter для открытия файлов',
-                desc: 'Открывать файлы только при нажатии Enter во время навигации по списку с клавиатуры.'
+                desc: 'Открывать файлы только при нажатии Enter во время навигации по списку с клавиатуры. В macOS это не позволяет Enter переименовывать файлы.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Shift+Enter.'
+                desc: 'Выберите, будет ли Shift+Enter открывать или переименовывать выбранный файл.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Cmd+Enter.'
+                desc: 'Выберите, будет ли Cmd+Enter открывать или переименовывать выбранный файл.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Ctrl+Enter.'
+                desc: 'Выберите, будет ли Ctrl+Enter открывать или переименовывать выбранный файл.'
             },
             mouseBackForwardAction: {
                 name: 'Кнопки «Назад»/«Вперёд» мыши',

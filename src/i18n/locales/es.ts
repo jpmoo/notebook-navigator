@@ -139,7 +139,7 @@ export const STRINGS_ES = {
         mobileBackToNavigation: 'Volver a navegación', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Cambiar orden de clasificación',
         changeSortAndGroup: 'Cambiar orden y agrupación',
-        defaultSort: 'Predeterminado', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Restablecer vista a valores predeterminados',
         manualSort: 'Orden manual',
         editSortOrder: 'Editar orden de clasificación...',
         removeSortProperty: 'Eliminar propiedad de orden',
@@ -399,9 +399,6 @@ export const STRINGS_ES = {
         titleRows: 'Filas de título',
         previewRows: 'Filas de vista previa',
         groupBy: 'Agrupar por',
-        defaultTitleOption: (rows: number) => `Filas de título predeterminadas (${rows})`,
-        defaultPreviewOption: (rows: number) => `Filas de vista previa predeterminadas (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Agrupación predeterminada (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de vista previa`
     },
@@ -1634,19 +1631,19 @@ export const STRINGS_ES = {
             },
             enterToOpenFiles: {
                 name: 'Pulsar Enter para abrir archivos',
-                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista.'
+                desc: 'Abrir archivos solo al pulsar Enter durante la navegación con teclado en la lista. En macOS, esto impide que Enter cambie el nombre de los archivos.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Shift+Enter.'
+                desc: 'Elegir si Shift+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Cmd+Enter.'
+                desc: 'Elegir si Cmd+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Abrir el archivo seleccionado en una nueva pestaña, división o ventana al pulsar Ctrl+Enter.'
+                desc: 'Elegir si Ctrl+Enter abre o cambia el nombre del archivo seleccionado.'
             },
             mouseBackForwardAction: {
                 name: 'Botones atrás/adelante del ratón',

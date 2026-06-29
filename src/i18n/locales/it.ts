@@ -140,7 +140,7 @@ export const STRINGS_IT = {
         mobileBackToNavigation: 'Torna alla navigazione', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Cambia ordine',
         changeSortAndGroup: 'Cambia ordine e raggruppamento',
-        defaultSort: 'Predefinito', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Ripristina vista alle impostazioni predefinite',
         manualSort: 'Ordinamento manuale',
         editSortOrder: 'Modifica ordinamento...',
         removeSortProperty: 'Rimuovi proprietà di ordinamento',
@@ -398,9 +398,6 @@ export const STRINGS_IT = {
         titleRows: 'Righe titolo',
         previewRows: 'Righe anteprima',
         groupBy: 'Raggruppa per',
-        defaultTitleOption: (rows: number) => `Righe titolo predefinite (${rows})`,
-        defaultPreviewOption: (rows: number) => `Righe anteprima predefinite (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Raggruppamento predefinito (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ${rows === 1 ? 'riga' : 'righe'} titolo`,
         previewRowOption: (rows: number) => `${rows} ${rows === 1 ? 'riga' : 'righe'} anteprima`
     },
@@ -1630,19 +1627,19 @@ export const STRINGS_IT = {
             },
             enterToOpenFiles: {
                 name: 'Premi Invio per aprire i file',
-                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco."
+                desc: "Apri i file solo premendo Invio durante la navigazione da tastiera nell'elenco. Su macOS, questo impedisce a Invio di rinominare i file."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Shift+Invio.'
+                desc: 'Scegli se Shift+Invio apre o rinomina il file selezionato.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Cmd+Invio.'
+                desc: 'Scegli se Cmd+Invio apre o rinomina il file selezionato.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Invio',
-                desc: 'Apri il file selezionato in una nuova scheda, divisione o finestra premendo Ctrl+Invio.'
+                desc: 'Scegli se Ctrl+Invio apre o rinomina il file selezionato.'
             },
             mouseBackForwardAction: {
                 name: 'Pulsanti indietro/avanti del mouse',

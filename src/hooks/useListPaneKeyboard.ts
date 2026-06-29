@@ -46,7 +46,7 @@ import { useFileOpener } from './useFileOpener';
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
-import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveKeyboardEnterAction } from '../utils/keyboardOpenContext';
 import type { Align } from '../types/scroll';
 
 /**
@@ -281,12 +281,14 @@ export function useListPaneKeyboard({
                 return targetIndex;
             };
 
-            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_RENAME) && onStartRename?.()) {
-                e.preventDefault();
-                return;
-            }
-
             if (settings.enterToOpenFiles && isEnterKey(e)) {
+                const action = resolveKeyboardEnterAction(e, settings);
+                if (action === 'rename') {
+                    e.preventDefault();
+                    onStartRename?.();
+                    return;
+                }
+
                 const selectedFile = resolvePrimarySelectedFile(app, currentFileSelection);
                 if (!selectedFile) {
                     return;
@@ -294,14 +296,13 @@ export function useListPaneKeyboard({
 
                 e.preventDefault();
 
-                const context = resolveKeyboardOpenContext(e, settings);
-                if (context) {
+                if (action) {
                     runAsyncAction(() =>
                         openFileInContext({
                             app,
                             commandQueue,
                             file: selectedFile,
-                            context,
+                            context: action,
                             active: false
                         })
                     );
@@ -309,6 +310,11 @@ export function useListPaneKeyboard({
                 }
 
                 openFileInWorkspace(selectedFile);
+                return;
+            }
+
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_RENAME) && onStartRename?.()) {
+                e.preventDefault();
                 return;
             }
 

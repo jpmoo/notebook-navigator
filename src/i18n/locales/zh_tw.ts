@@ -139,7 +139,7 @@ export const STRINGS_ZH_TW = {
         mobileBackToNavigation: '返回導覽',
         changeChildSortOrder: '變更排序方式',
         changeSortAndGroup: '變更排序與分組',
-        defaultSort: '預設',
+        resetViewToDefaults: '將檢視重設為預設值',
         manualSort: '手動排序',
         editSortOrder: '編輯排序方式...',
         removeSortProperty: '移除排序屬性',
@@ -398,9 +398,6 @@ export const STRINGS_ZH_TW = {
         titleRows: '標題行數',
         previewRows: '預覽行數',
         groupBy: '分組依據',
-        defaultTitleOption: (rows: number) => `預設標題行數 (${rows})`,
-        defaultPreviewOption: (rows: number) => `預設預覽行數 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `預設分組 (${groupLabel})`,
         titleRowOption: (rows: number) => `標題${rows}行`,
         previewRowOption: (rows: number) => `預覽${rows}行`
     },
@@ -1616,19 +1613,19 @@ export const STRINGS_ZH_TW = {
             },
             enterToOpenFiles: {
                 name: '按 Enter 鍵開啟檔案',
-                desc: '僅在清單鍵盤導覽時按 Enter 鍵開啟檔案。'
+                desc: '僅在清單鍵盤導覽時按 Enter 鍵開啟檔案。在 macOS 上，這會阻止 Enter 鍵重新命名檔案。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: '按 Shift+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Shift+Enter 要開啟還是重新命名所選檔案。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: '按 Cmd+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Cmd+Enter 要開啟還是重新命名所選檔案。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: '按 Ctrl+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+                desc: '選擇 Ctrl+Enter 要開啟還是重新命名所選檔案。'
             },
             mouseBackForwardAction: {
                 name: '滑鼠上一頁/下一頁按鈕',
