@@ -95,21 +95,17 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-06-29',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'You can now rename files, tags and properties inline using Enter (macOS) or F2 (Windows and Linux)! And we got more optimizations! This release significantly reduces **preview work while typing** and improves drag and drop performance. Previously there were lots of processing happening in the background every time Obsidian updated the current file when typing, now all actions are heavily gated.',
+        info: 'You can now **rename files, tags and properties inline** using Enter (macOS) or F2 (Windows and Linux)! And we got more optimizations! This release significantly reduces **preview work while typing** and also improves **drag and drop performance**. Previously there were lots of processing happening in the background every time Obsidian updated the current file when typing, now all actions are heavily gated.',
         new: [
-            '**Inline rename.** Rename files, folders, tags, and properties inline with Enter on macOS or F2 on Windows/Linux. The keyboard command is customizable with the `pane:rename` action.',
+            '**Inline rename.** ==Rename files, folders, tags, and properties inline== with Enter on macOS or F2 on Windows/Linux. The keyboard command is customizable with the `pane:rename` action.',
+            '**Manual sort.** Manual-sort movement now uses the custom hotkey actions `list:manual-sort-up` and `list:manual-sort-down`. Defaults remain `Mod+ArrowUp` and `Mod+ArrowDown`.',
             '**File icons.** New setting: ==File icon preset== in Notes > Icons by file type. You can now pick default file icons from one of the installed icon packs.',
             '**Navigation pane.** New setting ==Skip vault root when collapsing== in Navigation pane > Collapse items. When collapsing all items, the vault root folder keeps its current state.'
         ],
         improved: [
+            '**Navigation pane.** Root item spacing now supports values up to `12px`.',
             '**Performance.** Significantly improved drag and drop performance! Drag previews now use browser-native drag images instead of a JavaScript element that follows the pointer.',
-            '**Performance.** Notes without task metadata no longer read the full markdown file just to confirm task counts.',
-            '**Performance.** Word and character counts now only update when a visible count, tooltip, or group header needs them.',
-            '**Performance.** Task indicators no longer update after autosave when the number of unfinished tasks did not change.',
-            '**Performance.** Modified-date lists now skip refreshes when dates, tooltips, and date filters are inactive and the edited note stays in the same sorted position.',
-            '**Performance.** Tag and property lists now refresh only when metadata affects membership or sorting.',
-            '**Performance.** Calendar titles now refresh only when the configured frontmatter title changes.',
-            '**Navigation pane.** Root item spacing now supports values up to `12px`.'
+            '**Performance.** Significantly improved performance when typing in the current note.'
         ],
         changed: [
             '**Merge notes.** Source notes are no longer moved to trash by default. Select the option in the merge dialog to move them to trash.'
@@ -117,7 +113,6 @@ const RELEASE_NOTES: ReleaseNote[] = [
         fixed: [
             '**Manual sort.** Fixed a problem with manual sort when **Show notes from subfolders / descendants** was enabled. For example, a parent folder could have note `1`, a subfolder with notes `2.0` and `2.1`, and then note `3`. After manually sorting the subfolder notes, the parent folder could show `2.0`, `2.1`, `1`, `3` instead of `1`, `2.0`, `2.1`, `3`. The parent folder now keeps the correct order after sorting notes inside the subfolder.',
             '**Properties.** Fixed property value assignment writing the display label instead of the original frontmatter link value. Values such as `[[Mini-Tasks]]` now keep the `Mini-Tasks` label while assigning writes `[[Mini-Tasks]]`.',
-            "**List pane.** Fixed file selection sometimes jumping back to the previous note when Obsidian updated a note's modified date while opening another note.",
             '**List pane.** Fixed Reveal file not scrolling to notes inside collapsed list groups or the collapsed pinned section.'
         ]
     },

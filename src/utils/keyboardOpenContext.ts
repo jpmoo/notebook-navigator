@@ -62,23 +62,6 @@ export function isMultiSelectModifierPressed(event: MultiSelectModifierEventStat
     return isCmdCtrlModifierPressed(event);
 }
 
-export function isModifierArrowReorderShortcut(event: KeyboardEvent, multiSelectModifier: MultiSelectModifier): boolean {
-    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
-        return false;
-    }
-    if (event.shiftKey) {
-        return false;
-    }
-    if (!isMultiSelectModifierPressed(event, multiSelectModifier)) {
-        return false;
-    }
-    if (multiSelectModifier === 'optionAlt') {
-        return !event.metaKey && !event.ctrlKey;
-    }
-
-    return !event.altKey;
-}
-
 export function resolveFolderNoteClickOpenContext(
     event: CmdCtrlEventState,
     folderNoteOpenLocation: FolderNoteOpenLocation,
