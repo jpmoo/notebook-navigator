@@ -94,6 +94,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.2.1',
         date: '2026-06-29',
         showOnUpdate: true,
+        bannerUrl: true,
         info: 'You can now rename files, tags and properties inline using Enter (macOS) or F2 (Windows and Linux)! And we got more optimizations! This release significantly reduces **preview work while typing** and improves drag and drop performance. Previously there were lots of processing happening in the background every time Obsidian updated the current file when typing, now all actions are heavily gated.',
         new: [
             '**Inline rename.** Rename files, folders, tags, and properties inline with Enter on macOS or F2 on Windows/Linux. The keyboard command is customizable with the `pane:rename` action.',
