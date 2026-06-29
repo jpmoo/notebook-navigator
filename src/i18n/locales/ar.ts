@@ -140,7 +140,7 @@ export const STRINGS_AR = {
         mobileBackToNavigation: 'العودة للتنقل', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'تغيير ترتيب الفرز',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
-        defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'إعادة تعيين العرض إلى الإعدادات الافتراضية',
         manualSort: 'فرز يدوي',
         editSortOrder: 'تحرير ترتيب الفرز...',
         removeSortProperty: 'إزالة خاصية الفرز',
@@ -398,9 +398,6 @@ export const STRINGS_AR = {
         titleRows: 'صفوف العنوان',
         previewRows: 'صفوف المعاينة',
         groupBy: 'تجميع حسب',
-        defaultTitleOption: (rows: number) => `صفوف العنوان الافتراضية (${rows})`,
-        defaultPreviewOption: (rows: number) => `صفوف المعاينة الافتراضية (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `التجميع الافتراضي (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} صف عنوان`,
         previewRowOption: (rows: number) => `${rows} صف معاينة`
     },

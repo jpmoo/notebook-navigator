@@ -140,7 +140,7 @@ export const STRINGS_EN = {
         mobileBackToNavigation: 'Back to navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
-        defaultSort: 'Default', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Reset view to defaults',
         manualSort: 'Manual sort',
         editSortOrder: 'Edit sort order...',
         removeSortProperty: 'Remove sort property',
@@ -398,9 +398,6 @@ export const STRINGS_EN = {
         titleRows: 'Title rows',
         previewRows: 'Preview rows',
         groupBy: 'Group by',
-        defaultTitleOption: (rows: number) => `Default title rows (${rows})`,
-        defaultPreviewOption: (rows: number) => `Default preview rows (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Default grouping (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} title row${rows === 1 ? '' : 's'}`,
         previewRowOption: (rows: number) => `${rows} preview row${rows === 1 ? '' : 's'}`
     },

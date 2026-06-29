@@ -140,7 +140,7 @@ export const STRINGS_PL = {
         mobileBackToNavigation: 'Wróć do nawigacji', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Zmień kolejność sortowania',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
-        defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Przywróć widok do ustawień domyślnych',
         manualSort: 'Sortowanie ręczne',
         editSortOrder: 'Edytuj kolejność sortowania...',
         removeSortProperty: 'Usuń atrybut sortowania',
@@ -399,9 +399,6 @@ export const STRINGS_PL = {
         titleRows: 'Wiersze tytułu',
         previewRows: 'Wiersze podglądu',
         groupBy: 'Grupuj według',
-        defaultTitleOption: (rows: number) => `Domyślne wiersze tytułu (${rows})`,
-        defaultPreviewOption: (rows: number) => `Domyślne wiersze podglądu (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Domyślne grupowanie (${groupLabel})`,
         titleRowOption: (rows: number) =>
             `${rows} ${rows === 1 ? 'wiersz' : rows === 2 || rows === 3 || rows === 4 ? 'wiersze' : 'wierszy'} tytułu`,
         previewRowOption: (rows: number) =>

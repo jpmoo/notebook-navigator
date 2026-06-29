@@ -141,7 +141,7 @@ export const STRINGS_NL = {
         mobileBackToNavigation: 'Terug naar navigatie',
         changeChildSortOrder: 'Sorteervolgorde wijzigen',
         changeSortAndGroup: 'Sortering en groepering wijzigen',
-        defaultSort: 'Standaard',
+        resetViewToDefaults: 'Weergave terugzetten naar standaardwaarden',
         manualSort: 'Handmatig sorteren',
         editSortOrder: 'Sorteervolgorde bewerken...',
         removeSortProperty: 'Sorteereigenschap verwijderen',
@@ -401,9 +401,6 @@ export const STRINGS_NL = {
         titleRows: 'Titelrijen',
         previewRows: 'Voorbeeldrijen',
         groupBy: 'Groeperen op',
-        defaultTitleOption: (rows: number) => `Standaard titelrijen (${rows})`,
-        defaultPreviewOption: (rows: number) => `Standaard voorbeeldrijen (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Standaardgroepering (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} titelrij${rows === 1 ? '' : 'en'}`,
         previewRowOption: (rows: number) => `${rows} voorbeeldrij${rows === 1 ? '' : 'en'}`
     },

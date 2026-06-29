@@ -140,7 +140,7 @@ export const STRINGS_FA = {
         mobileBackToNavigation: 'بازگشت به ناوبری',
         changeChildSortOrder: 'تغییر ترتیب',
         changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
-        defaultSort: 'پیش‌فرض',
+        resetViewToDefaults: 'بازنشانی نما به پیش‌فرض‌ها',
         manualSort: 'مرتب‌سازی دستی',
         editSortOrder: 'ویرایش ترتیب مرتب‌سازی...',
         removeSortProperty: 'حذف ویژگی مرتب‌سازی',
@@ -398,9 +398,6 @@ export const STRINGS_FA = {
         titleRows: 'ردیف‌های عنوان',
         previewRows: 'ردیف‌های پیش‌نمایش',
         groupBy: 'گروه‌بندی بر اساس',
-        defaultTitleOption: (rows: number) => `ردیف‌های عنوان پیش‌فرض (${rows})`,
-        defaultPreviewOption: (rows: number) => `ردیف‌های پیش‌نمایش پیش‌فرض (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `گروه‌بندی پیش‌فرض (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ردیف عنوان`,
         previewRowOption: (rows: number) => `${rows} ردیف پیش‌نمایش`
     },

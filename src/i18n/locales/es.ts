@@ -139,7 +139,7 @@ export const STRINGS_ES = {
         mobileBackToNavigation: 'Volver a navegación', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Cambiar orden de clasificación',
         changeSortAndGroup: 'Cambiar orden y agrupación',
-        defaultSort: 'Predeterminado', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Restablecer vista a valores predeterminados',
         manualSort: 'Orden manual',
         editSortOrder: 'Editar orden de clasificación...',
         removeSortProperty: 'Eliminar propiedad de orden',
@@ -399,9 +399,6 @@ export const STRINGS_ES = {
         titleRows: 'Filas de título',
         previewRows: 'Filas de vista previa',
         groupBy: 'Agrupar por',
-        defaultTitleOption: (rows: number) => `Filas de título predeterminadas (${rows})`,
-        defaultPreviewOption: (rows: number) => `Filas de vista previa predeterminadas (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Agrupación predeterminada (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de vista previa`
     },

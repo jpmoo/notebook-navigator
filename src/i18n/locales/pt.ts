@@ -140,7 +140,7 @@ export const STRINGS_PT = {
         mobileBackToNavigation: 'Voltar à navegação', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Alterar ordem de ordenação',
         changeSortAndGroup: 'Alterar ordenação e agrupamento',
-        defaultSort: 'Predefinido', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Repor vista para predefinições',
         manualSort: 'Ordenação manual',
         editSortOrder: 'Editar ordenação...',
         removeSortProperty: 'Remover propriedade de ordenação',
@@ -399,9 +399,6 @@ export const STRINGS_PT = {
         titleRows: 'Linhas de título',
         previewRows: 'Linhas de pré-visualização',
         groupBy: 'Agrupar por',
-        defaultTitleOption: (rows: number) => `Linhas de título predefinidas (${rows})`,
-        defaultPreviewOption: (rows: number) => `Linhas de pré-visualização predefinidas (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Agrupamento predefinido (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} linha${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} linha${rows === 1 ? '' : 's'} de pré-visualização`
     },

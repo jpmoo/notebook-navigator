@@ -139,7 +139,7 @@ export const STRINGS_DE = {
         mobileBackToNavigation: 'Zurück zur Navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sortierreihenfolge ändern',
         changeSortAndGroup: 'Sortierung und Gruppierung ändern',
-        defaultSort: 'Standard', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Ansicht auf Standardwerte zurücksetzen',
         manualSort: 'Manuelle Sortierung',
         editSortOrder: 'Sortierreihenfolge bearbeiten...',
         removeSortProperty: 'Sortier-Eigenschaft entfernen',
@@ -399,9 +399,6 @@ export const STRINGS_DE = {
         titleRows: 'Titelzeilen',
         previewRows: 'Vorschauzeilen',
         groupBy: 'Gruppieren nach',
-        defaultTitleOption: (rows: number) => `Standard-Titelzeilen (${rows})`,
-        defaultPreviewOption: (rows: number) => `Standard-Vorschauzeilen (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Standardgruppierung (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} Titelzeile${rows === 1 ? '' : 'n'}`,
         previewRowOption: (rows: number) => `${rows} Vorschauzeile${rows === 1 ? '' : 'n'}`
     },

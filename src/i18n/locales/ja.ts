@@ -139,7 +139,7 @@ export const STRINGS_JA = {
         mobileBackToNavigation: 'ナビゲーションに戻る', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '並び順を変更',
         changeSortAndGroup: '並び順とグループを変更',
-        defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'ビューをデフォルトに戻す',
         manualSort: '手動並べ替え',
         editSortOrder: '並べ替え順を編集...',
         removeSortProperty: '並べ替えプロパティを削除',
@@ -398,9 +398,6 @@ export const STRINGS_JA = {
         titleRows: 'タイトル行数',
         previewRows: 'プレビュー行数',
         groupBy: 'グループ分け',
-        defaultTitleOption: (rows: number) => `デフォルトタイトル行数 (${rows})`,
-        defaultPreviewOption: (rows: number) => `デフォルトプレビュー行数 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `デフォルトのグループ化 (${groupLabel})`,
         titleRowOption: (rows: number) => `タイトル${rows}行`,
         previewRowOption: (rows: number) => `プレビュー${rows}行`
     },

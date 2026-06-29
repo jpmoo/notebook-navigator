@@ -140,7 +140,7 @@ export const STRINGS_FR = {
         mobileBackToNavigation: 'Retour à la navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: "Changer l'ordre de tri",
         changeSortAndGroup: 'Changer le tri et le regroupement',
-        defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Réinitialiser la vue aux valeurs par défaut',
         manualSort: 'Tri manuel',
         editSortOrder: "Modifier l'ordre de tri...",
         removeSortProperty: 'Supprimer la propriété de tri',
@@ -400,9 +400,6 @@ export const STRINGS_FR = {
         titleRows: 'Lignes de titre',
         previewRows: "Lignes d'aperçu",
         groupBy: 'Grouper par',
-        defaultTitleOption: (rows: number) => `Lignes de titre par défaut (${rows})`,
-        defaultPreviewOption: (rows: number) => `Lignes d'aperçu par défaut (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Regroupement par défaut (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ligne${rows === 1 ? '' : 's'} de titre`,
         previewRowOption: (rows: number) => `${rows} ligne${rows === 1 ? '' : 's'} d'aperçu`
     },

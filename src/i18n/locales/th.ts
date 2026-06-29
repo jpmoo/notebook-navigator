@@ -140,7 +140,7 @@ export const STRINGS_TH = {
         mobileBackToNavigation: 'กลับไปการนำทาง',
         changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
         changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
-        defaultSort: 'ค่าเริ่มต้น',
+        resetViewToDefaults: 'รีเซ็ตมุมมองเป็นค่าเริ่มต้น',
         manualSort: 'จัดเรียงด้วยตนเอง',
         editSortOrder: 'แก้ไขลำดับการจัดเรียง...',
         removeSortProperty: 'ลบคุณสมบัติการจัดเรียง',
@@ -398,9 +398,6 @@ export const STRINGS_TH = {
         titleRows: 'แถวชื่อเรื่อง',
         previewRows: 'แถวตัวอย่าง',
         groupBy: 'จัดกลุ่มตาม',
-        defaultTitleOption: (rows: number) => `แถวชื่อเรื่องเริ่มต้น (${rows})`,
-        defaultPreviewOption: (rows: number) => `แถวตัวอย่างเริ่มต้น (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `การจัดกลุ่มเริ่มต้น (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} แถวชื่อเรื่อง`,
         previewRowOption: (rows: number) => `${rows} แถวตัวอย่าง`
     },

@@ -139,7 +139,7 @@ export const STRINGS_ZH_CN = {
         mobileBackToNavigation: '返回导航', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '更改排序方式',
         changeSortAndGroup: '更改排序和分组',
-        defaultSort: '默认', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: '将视图重置为默认值',
         manualSort: '手动排序',
         editSortOrder: '编辑排序方式...',
         removeSortProperty: '移除排序属性',
@@ -398,9 +398,6 @@ export const STRINGS_ZH_CN = {
         titleRows: '标题行数',
         previewRows: '预览行数',
         groupBy: '分组依据',
-        defaultTitleOption: (rows: number) => `默认标题行数 (${rows})`,
-        defaultPreviewOption: (rows: number) => `默认预览行数 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `默认分组 (${groupLabel})`,
         titleRowOption: (rows: number) => `标题${rows}行`,
         previewRowOption: (rows: number) => `预览${rows}行`
     },

@@ -140,7 +140,7 @@ export const STRINGS_VI = {
         mobileBackToNavigation: 'Quay lại điều hướng', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Đổi thứ tự sắp xếp',
         changeSortAndGroup: 'Đổi sắp xếp và nhóm',
-        defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Đặt lại chế độ xem về mặc định',
         manualSort: 'Sắp xếp thủ công',
         editSortOrder: 'Chỉnh sửa thứ tự sắp xếp...',
         removeSortProperty: 'Xóa thuộc tính sắp xếp',
@@ -398,9 +398,6 @@ export const STRINGS_VI = {
         titleRows: 'Dòng tiêu đề',
         previewRows: 'Dòng xem trước',
         groupBy: 'Nhóm theo',
-        defaultTitleOption: (rows: number) => `Dòng tiêu đề mặc định (${rows})`,
-        defaultPreviewOption: (rows: number) => `Dòng xem trước mặc định (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Nhóm mặc định (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} dòng tiêu đề`,
         previewRowOption: (rows: number) => `${rows} dòng xem trước`
     },

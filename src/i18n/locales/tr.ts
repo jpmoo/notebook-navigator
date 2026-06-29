@@ -140,7 +140,7 @@ export const STRINGS_TR = {
         mobileBackToNavigation: 'Gezinmeye dön', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sıralama düzenini değiştir',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
-        defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Görünümü varsayılanlara sıfırla',
         manualSort: 'Manuel sıralama',
         editSortOrder: 'Sıralama düzenini düzenle...',
         removeSortProperty: 'Sıralama özelliğini kaldır',
@@ -399,9 +399,6 @@ export const STRINGS_TR = {
         titleRows: 'Başlık satırları',
         previewRows: 'Önizleme satırları',
         groupBy: 'Grupla',
-        defaultTitleOption: (rows: number) => `Varsayılan başlık satırları (${rows})`,
-        defaultPreviewOption: (rows: number) => `Varsayılan önizleme satırları (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Varsayılan gruplama (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} başlık satırı`,
         previewRowOption: (rows: number) => `${rows} önizleme satırı`
     },

@@ -140,7 +140,7 @@ export const STRINGS_ID = {
         mobileBackToNavigation: 'Kembali ke navigasi',
         changeChildSortOrder: 'Ubah urutan',
         changeSortAndGroup: 'Ubah urutan dan grup',
-        defaultSort: 'Default',
+        resetViewToDefaults: 'Atur ulang tampilan ke default',
         manualSort: 'Urutan manual',
         editSortOrder: 'Edit urutan...',
         removeSortProperty: 'Hapus properti urutan',
@@ -399,9 +399,6 @@ export const STRINGS_ID = {
         titleRows: 'Baris judul',
         previewRows: 'Baris pratinjau',
         groupBy: 'Kelompokkan berdasarkan',
-        defaultTitleOption: (rows: number) => `Baris judul default (${rows})`,
-        defaultPreviewOption: (rows: number) => `Baris pratinjau default (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Pengelompokan default (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} baris judul`,
         previewRowOption: (rows: number) => `${rows} baris pratinjau`
     },
